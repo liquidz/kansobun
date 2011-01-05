@@ -104,23 +104,13 @@
   )
 
 (defn save-impression [{:keys [title tag mail text]} session]
-  (let [username (if (:logined? session) (:login-user session) *default-user-name*)]
+  (let [username (if (:logined? session) (:login-user session) *guest-account*)]
     (if (or (string/blank? title) (string/blank? text))
       (with-message (redirect "/") "title or impression is null")
       (do
         (put-impression username mail title tag text)
         (with-message (redirect "/") "success to save impression")
         )
-      ;(let [parent-book (put-book title)]
-      ;  (create-tags parent-book tag)
-
-      ;  (put-entity *impression-entity* :parent parent-book
-      ;              :title title :text text :username username
-      ;              :avator (if-not (string/blank? mail) (mail->gravatar mail))
-      ;              :date (now)
-      ;              )
-      ;  (with-message (redirect "/") "success to save impression")
-      ;  )
       )
     )
   )
@@ -131,11 +121,12 @@
     (let [[title & tags] (split-title-and-tag subject)]
       (if (string/blank? title)
         (return-error-mail from "title is blank")
-        (let [user (get-user :mail to)]
-          (if (nil? user)
+        (let [guest? (= *guest-mail-address* to)
+              username (if guest? *guest-account* (:name (get-user :mail to)))]
+          (if (nil? username)
             (return-error-mail "invalid mail address")
             (do
-              (put-impression (:name user) from title tags body)
+              (put-impression username (if-not guest? from) title tags body)
               (return-success-mail from "post successful")
               )
             )

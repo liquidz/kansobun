@@ -8,6 +8,13 @@
   (:require [clojure.contrib.string :as string])
   )
 
+(defn exist-user? [{name :name}]
+  (or
+    (= name *guest-account*)
+    (= 1 (count-entity *user-entity* :filter ['= :name name] :limit 1))
+    )
+  )
+
 (defn get-user [& {:keys [name mail]}]
   (let [find-body (fn [k v]
                     (first (find-entity *user-entity* :filter ['= k v] :limit 1))
@@ -30,7 +37,7 @@
   )
 
 (defn register-secret-mailaddress [name question answer]
-  (if (zero? (count-entity *user-entity* :filter ['= :name name] :limit 1))
+  (if-not (exist-user? {:name name})
     (let [[mail-address mail-hash] (new-secret-mailaddress)]
       (put-entity *user-entity* :mailhash mail-hash :name name
                   :question question :answer (str->sha1 answer) :date (now))
@@ -80,7 +87,4 @@
     )
   )
 
-(defn exist-user? [{name :name}]
-  (= 1 (count-entity *user-entity* :filter ['= :name name] :limit 1))
-  )
 

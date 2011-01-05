@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+
+	<link rel="stylesheet" type="text/css" href="/css/main.css" />
+
+	<script type="text/javascript" src="/js/jquery-1.4.4.min.js"></script>
+	<script type="text/javascript">
+
+	</script>
+
+	<title>kanso</title>
+</head>
+<body>
+	<header>
+		<h1>kanso</h1>
+		<p id="login">
+			<img src="/img/ajax-loader.gif" alt="loading" />
+			<a href="/login">login</a>
+		</p>
+
+		<form method="GET" action="/search">
+			<input type="search" placeholder="keyword" />
+			<input type="submit" value="search" />
+		</form>
+	</header>
+
+	<nav>
+	<ul>
+		<li><a href="">aa</a></li>
+		<li><a href="">bb</a></li>
+		<li><a href="">cc</a></li>
+	</ul>
+	</nav>
+
+	<form method="POST" action="/save" id="save">
+		<fieldset>
+			<legend>content</legend>
+			<p id="user_input">
+				<label for="user">name: </label>
+				<input type="text" id="user" name="user" />
+			</p>
+
+			<p>
+				<label for="title">title: </label>
+				<input type="text" id="title" name="title" />
+			</p>
+
+			<textarea name="content"></textarea>
+			<input type="submit" value="save" />
+		</fieldset>
+	</form>
+
+	<div id="list"><ul>
+			<img src="/img/ajax-loader.gif" alt="loading" />
+	</ul></div>
+
+	<footer>
+		<p>Copyright &copy; 2010 <a href="http://twitter.com/uochan">@uochan</a>. All rights reserved.</p>
+	</footer>
+</body>
+<

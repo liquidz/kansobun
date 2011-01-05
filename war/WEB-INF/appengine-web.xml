@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appengine-web-app 
+	xmlns="http://appengine.google.com/ns/1.0">
+	<application>kanso</application>
+	<version>1</version>
+	<static-files>
+		<include path="/index.html" />
+		<include path="/favicon.ico" />
+		<include path="/css/**.css" />
+		<include path="/img/**.png" />
+		<include path="/img/**.jpg" />
+		<include path="/img/**.gif" />
+		<include path="/js/**.js" />
+	</static-files>
+	<resource-files />
+
+	<system-properties>
+		<property name="java.util.logging.config.file" value="WEB-INF/logging.properties"/>
+	</system-properties>
+
+	<precompilation-enabled>true</precompilation-enabled>
+	<sessions-enabled>true</sessions-enabled>
+
+	<inbound-services>
+			<service>mail</service>
+	</inbound-services>
+</appengine-web-app>

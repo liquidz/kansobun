@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+
+	<link rel="stylesheet" type="text/css" href="/css/main.css" />
+
+	<script type="text/javascript" src="/js/jquery-1.4.4.min.js"></script>
+	<script type="text/javascript" src="/js/main.js"></script>
+
+	<title>kanso</title>
+</head>
+<body>
+	<header>
+		<h1><a href="/">kanso</a></h1>
+		<p id="copy">本の感想を共有するだけのサービス</p>
+
+		<form id="search_form" method="POST" action="/search">
+			<input id="search_input" type="search" placeholder="キーワード" /><input type="submit" value="検索" />
+			<br />
+			<label><input id="select_comment" name="search_type" type="radio" checked="checked" />感想</label><label><input id="select_tag" name="search_type" type="radio" />タグ</label><label><input id="select_book" name="search_type" type="radio" />本</label>
+		</form>
+
+		<div id="auth">
+			<span id="login_link"><a href="javascript:void(0);">ログイン</a></span>
+			<form id="login_form" method="GET" action="/login">
+				<label>秘密のメアド: <input type="password" name="mail" /></label>
+				<input type="submit" value="ログイン" />
+			</form>
+
+			<p id="logout_link"><span id="login_user"></span> <a href="/logout">ログアウト</a></p>
+		</div>
+
+		<div class="clearer">&nbsp;</div>
+	</header>
+
+	<nav>
+	<ul>
+		<li class="selected"><a href="/">トップ</a></li>
+		<li><a href="">名前の登録</a></li>
+		<li><a href="">注目の本</a></li>
+		<li><a href="">最近の感想</a></li>
+		<li><a href="">最近投稿したユーザ</a></li>
+	</ul>
+	</nav>
+
+	
+	<div id="screen">
+	<div id="register_screen">
+		<form method="POST" action="/save" id="save">
+			<fieldset>
+				<legend>本の感想を登録</legend>
+				<div class="left">
+					<p><input type="text" id="title" name="title" /></p>
+					<p><input type="text" id="tag" name="tag" /></p>
+					<p><textarea name="text"></textarea></p>
+				</div>
+				<input type="submit" value="ゲストとして投稿" />
+				<a href="">名前を登録して投稿</a>
+			</fieldset>
+		</form>
+	</div>
+
+	<div id="info_screen">
+
+		<session id="register">
+			<h1>ユーザー登録</h1>
+
+			<form method="POST" action="/new_user">
+				<p><label>希望する名前<span class="hissu">(必須)</span>:<br /><input type="text" name="name" /></label></p>
+				<p><label>秘密の質問<span class="nini">(任意)</span>:<br />
+				<select name="question" class="load_secret_questions"></select>
+				</label></p>
+				<p><label>秘密の回答<span class="nini">(任意)</span>:<br /><input type="text" name="answer" /></label></p>
+				<p><input type="submit" value="登録" /></p>
+			</form>
+		</session>
+
+		<session id="reset">
+			<h1>秘密のメアドを再発行</h1>
+			<form method="POST" action="/reset_user">
+				<p><label>名前:<br /><input type="text" name="name" /></label></p>
+				<p><label>秘密の質問:<br />
+				<select name="question" class="load_secret_questions"></select>
+				</label></p>
+				<p><label>秘密の回答:<br /><input type="text" name="answer" /></label></p>
+				<p><input type="submit" value="再発行" /></p>
+			</form>
+		</session>
+	</div>
+	</div>
+
+	<div id="old_screen">
+		<p id="message"></p>
+
+		<section id="introduction">
+			<h1>本の感想を登録</h1>
+		</section>
+
+		<section id="impression">
+			<h1>本の詳細</h1>
+			<h2 id="book_title"></h2>
+			<p>
+				<span id="book_tag"></span>
+				<input type="text" id="new_tag" />
+				<a id="edit_tag" href="javascript:void(0);">タグを編集</a>
+			</p>
+
+			<div id="impression_content">
+				<p id="impression_user"></p>
+				<p id="impression_date"></p>
+				<pre id="impression_text"></pre>
+			</div>
+
+<!--
+			<pre id="book_content"></pre>
+			-->
+			<p><a id="get_other_impressions" href="javascript:void(0);">すべての感想を見る</a></p>
+			<div id="other_impressions"></div>
+
+			<p><a class="back" href="javascript:void(0);">もどる</a></p>
+		</section>
+
+		<section id="search">
+			<h1>検索結果</h1>
+			<div id="search_result"></div>
+			<p><a class="back" href="javascript:void(0);">もどる</a></p>
+		</section>
+
+		<section id="recent">
+			<h1>最近の感想</h1>
+			<div id="recent_list"><ul>
+				<img src="/img/ajax-loader.gif" alt="loading" />
+			</ul></div>
+		</section>
+	</div>
+
+	<a href="/new_user">new user</a>
+
+	<footer>
+		<p>Copyright &copy; 2010 <a href="http://twitter.com/uochan">@uochan</a>. All rights reserved.</p>
+	</footer>
+</body>
+</html>

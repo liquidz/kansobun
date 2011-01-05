@@ -1,0 +1,189 @@
+@import "common.css";
+
+/* default hidden */
+#logout_link, #reset{
+	display: none;
+}
+
+#old_screen { display: none;}
+
+/* =header */
+header {
+	/*overflow: hidden;*/
+	background: #444;
+	padding: 10px 0;
+}
+header input[type=search], header input[type=submit] { border: 0; }
+
+header h1 { margin-left: 10px; }
+header h1 a {
+	background: transparent url(/img/kanso_logo.png) no-repeat left top;
+	width: 92px; height: 40px;
+	font-size: 0; text-indent: -10000px;
+	display: block;
+	text-decoration: none;
+}
+header, #auth a {
+	color: #fff;
+}
+header h1, header p#copy, header #search_form { float: left; }
+header p#copy {
+	margin: 0 10px;
+	line-height: 40px;
+}
+header #search_form {
+	margin-left: 10px;
+}
+header #auth {
+	float: right;
+	margin: 5px 10px 0 0;
+}
+#login_link { display: none; }
+#login_form {
+	background: #fff;
+	color: #000;
+	padding: 10px;
+	border: 2px solid #ccc;
+    -webkit-border-radius: 5px;
+}
+header h1 {
+	font-size: 20px;
+	letter-spacing: 2px;
+	line-height: 30px;
+}
+header input#search {
+	margin: 5px 0 0 10px;
+}
+#login_link a, #logout_link a, #logout_link { padding-left: 20px; }
+#login_link a, #logout_link a { background: transparent url(/img/login.png) no-repeat left 50%; }
+#logout_link { background: transparent url(/img/welcome.png) no-repeat left 50%; }
+#login_user { padding-right: 15px; }
+
+/* =nav */
+nav {
+	text-align: center;
+}
+nav ul {
+	list-style: none;
+}
+nav ul li {
+	display: inline;
+	margin: 0 1%;
+	padding-bottom: 5px;
+	background: #666;
+	border-top: 1px solid #555;
+
+    -webkit-border-bottom-left-radius: 10px;
+    -webkit-border-bottom-right-radius: 10px;
+    -moz-border-radius-bottomleft: 12px;
+}
+nav ul li:hover, nav ul li.selected {
+	background: #aaa;
+}
+nav ul li a {
+	color: #fff;
+	padding: 0 3%;
+	letter-spacing: 1px;
+}
+
+/* =screen */
+#screen {
+	overflow: hidden;
+	margin: 10px 1% 10px 1%;
+}
+
+/* =register_screen */
+#register_screen {
+	float: left;
+	width: 58%;
+	border: 1px solid #f00;
+}
+#register_screen input[type=text], #register_screen textarea {
+	font-size: 25px;
+}
+
+/* =info_screen */
+#info_screen {
+	width: 38%;
+	float: left;
+	border: 1px solid #0f0;
+}
+
+/* =section */
+section h1 { font-size: medium; }
+
+/* =introduction */
+#introduction {
+	overflow: hidden;
+}
+#introduction form {
+	width: 700px;
+	float: left;
+}
+#introduction fieldset {
+	padding: 5px 10px;
+	border: 1px solid #aaa;
+	overflow: hidden;
+}
+#introduction fieldset legend {
+	letter-spacing: 2px;
+	font-size: small;
+}
+#introduction .left {
+	float: left;
+}
+#introduction textarea {
+	width: 580px;
+	height: 100px;
+}
+#introduction input[type=submit] {
+	width: 80px;
+	height: 145px;
+	letter-spacing: 2px;
+	float: left;
+	margin-left: 10px;
+}
+#title {
+	background: transparent url(/img/kanso_title.png) no-repeat 5px 50%;
+	padding-left: 30px;
+}
+#user, #mail, #tag {
+	width: 150px;
+}
+#user {
+	background: transparent url(/img/kanso_name.png) no-repeat 5px 50%;
+	padding-left: 30px;
+}
+#mail {
+	background: transparent url(/img/kanso_mail.png) no-repeat 5px 50%;
+	padding-left: 30px;
+}
+#tag {
+	background: transparent url(/img/kanso_tag.png) no-repeat 5px 50%;
+	padding-left: 30px;
+}
+
+
+/*
+#introduction, #impression {
+	border: 1px solid #aaa;
+	margin: 10px;
+}
+	*/
+
+
+
+/* =footer */
+footer {
+	margin: 10px 0 0 0;
+	text-align: center;
+	font-size: small;
+	letter-spacing: 1px;
+}
+
+
+.clearer { height: 0; font-size: 0; text-indent: -10000px; clear: both; }
+
+.hissu, .nini { font-size: x-small; }
+.hissu { color: #f00; }
+.nini { color: #888; }

@@ -20,11 +20,9 @@
   )
 
 (defn get-books-with-tag [{:keys [name] :or {name ""}}]
-  (entity-list->json
-    (if (string/blank? name) []
-      (map #(get-entity (:parent %))
-           (find-entity *tag-entity* :filter ['= :tag name]))
-      )
+  (if (string/blank? name) []
+    (map #(get-entity (:parent %))
+         (find-entity *tag-entity* :filter ['= :tag name]))
     )
   )
 
@@ -42,32 +40,26 @@
     (when-not (nil? user) (add-filter query '= :user user))
     (when (key? parent) (set-ancestor query parent))
 
-    (entity-list->json (find-entity query :limit limit :offset offset))
+    (find-entity query :limit limit :offset offset)
     )
   )
 
 (defn get-impressions-from-book-key [{book-key-str "key", :or {book-key-str ""}}]
-  (entity-list->json
-    (if (string/blank? book-key-str) []
-      (find-entity *impression-entity* :parent (str->key book-key-str))
-      )
+  (if (string/blank? book-key-str) []
+    (find-entity *impression-entity* :parent (str->key book-key-str))
     )
   )
 
 (defn get-impression [{impression-key-str "key" :or {impression-key-str nil}}]
-  (json-str
-    (if (string/blank? impression-key-str) {}
-      (let [key (str->key impression-key-str)
-            impression (get-entity key)
-            tags (find-entity *tag-entity* :parent (:parent impression))
-            ]
-        (remove-extra-key
-          (assoc impression
-                 :tag (map remove-extra-key tags)
-                 :parentkey (-> impression :parent key->str)
-                 )
-          )
-        )
+  (if (string/blank? impression-key-str) {}
+    (let [key (str->key impression-key-str)
+          impression (get-entity key)
+          tags (find-entity *tag-entity* :parent (:parent impression))
+          ]
+      (assoc impression
+             :tag (map remove-extra-key tags)
+             :parentkey (-> impression :parent key->str)
+             )
       )
     )
   )

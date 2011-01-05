@@ -16,9 +16,8 @@
   )
 
 
-(defmacro jsonGET [path bind & body]
-  `(GET ~path ~bind (json-str ~@body))
-  )
+(defmacro jsonGET [path bind & body] `(GET ~path ~bind (to-json ~@body)))
+(defmacro jsonPOST [path bind & body] `(POST ~path ~bind (to-json ~@body)))
 
 
 ;(defn- search-entity-with-text [kind key {text "text" :or {text nil}}]
@@ -33,10 +32,10 @@
 
 
 (defroutes api-routes
-  (GET "/list" {params :params} (get-impression-list params))
-  (GET "/impression" {params :params} (get-impression params))
-  (GET "/impressions" {params :params} (get-impressions-from-book-key params))
-  (GET "/tag" {params :params} (get-books-with-tag (convert-map params)))
+  (jsonGET "/list" {params :params} (get-impression-list params))
+  (jsonGET "/impression" {params :params} (get-impression params))
+  (jsonGET "/impressions" {params :params} (get-impressions-from-book-key params))
+  (jsonGET "/tag" {params :params} (get-books-with-tag (convert-map params)))
 ;  (POST "/search" {params :params} (search params))
   (POST "/save" {params :params, session :session} (save-impression (convert-map params) session))
   (POST "/update_tag" {params :params} (update-tag (convert-map params)))
@@ -45,14 +44,14 @@
 (defroutes auth-routes ; {{{
   (GET "/login" {params :params, session :session} (login (convert-map params) session))
   (GET "/logout" _ (assoc (redirect "/") :session {}))
-  (GET "/exist_user" {params :params} (exist-user? (convert-map params)))
-  (POST "/new_user" {params :params} (create-user (convert-map params)))
-  (POST "/reset_user" {params :params} (reset-user (convert-map params)))
+  (jsonGET "/exist_user" {params :params} (exist-user? (convert-map params)))
+  (jsonPOST "/new_user" {params :params} (create-user (convert-map params)))
+  (jsonPOST "/reset_user" {params :params} (reset-user (convert-map params)))
   ); }}}
 
 (defroutes parts-route
-  (GET "/parts/login" {session :session}
-    (json-str {:flag (:logined? session) :name (:login-user session)})
+  (jsonGET "/parts/login" {session :session}
+    {:flag (:logined? session) :name (:login-user session)}
     )
   (jsonGET "/parts/secret_questions" _ *secret-questions*)
   (GET "/check" {session :session} (println "session:" session) session)
@@ -66,19 +65,10 @@
   parts-route
   )
 
-;(defservice (session/wrap-session app))
-
-
-
 (wrap! app session/wrap-session)
-
-
 (defservice app)
 
-                            ; (def message (MimeMessage. session (req/getInputStream)))
-                            ; address
-                            ; (.getFrom message)
-                            ;
-                            ; string@appid.appspotmail.com
-                            ; hello@kanso.appspotmail.com
-                            ; cgi63XgGzWSwSb4a@kanso.appspotmail.com
+  ; =masa
+  ; cgi63XgGzWSwSb4a@kanso.appspotmail.com
+  ; =inu
+  ; DLsEjbjuNzG4lEZO@kanso.appspotmail.com

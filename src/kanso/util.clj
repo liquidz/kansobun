@@ -65,6 +65,15 @@
   (json-str (map #(if (map? %) (remove-extra-key %) %) els))
   )
 
+(defn- json-conv [obj]
+  (cond
+    (list? obj) (map json-conv obj)
+    (map? obj) (remove-extra-key obj)
+    :else obj
+    )
+  )
+(defn to-json [obj] (json-str (json-conv obj)))
+
 (defn mail->gravatar [mail]
   (str "http://www.gravatar.com/avatar/" (str->md5 mail))
   )

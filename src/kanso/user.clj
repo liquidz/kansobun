@@ -71,18 +71,16 @@
   )
 
 (defn reset-user [{:keys [name question answer]}]
-  (json-str (reset-secret-mailaddress name question answer))
+  (reset-secret-mailaddress name question answer)
   )
 
 (defn create-user [{:keys [name question answer]}]
-  (json-str
-    (if-not (string/blank? (string/trim name))
-      (register-secret-mailaddress name question answer)
-      )
+  (if-not (string/blank? (string/trim name))
+    (register-secret-mailaddress name question answer)
     )
   )
 
 (defn exist-user? [{name :name}]
-  (json-str (= 1 (count-entity *user-entity* :filter ['= :name name] :limit 1)))
+  (= 1 (count-entity *user-entity* :filter ['= :name name] :limit 1))
   )
 

@@ -28,17 +28,15 @@
 ; [id bid title user date]
 
 (defdstest test-main
-  (let [d1 "1984/12/09 12:09:00"
-        d2 "1987/02/04 02:04:00"
-        ]
-    (put-entity "birth" :date d1)
-    (put-entity "birth" :date d2)
+  (put-entity "test" :hello "world")
+  (let [res (find-entity "test")]
+    (if (map? (first res))
+      (println "this is map")
+      (println "this is NOT map")
+      )
 
-    (print-entity (find-entity "birth"))
-    (println "------------------")
-    (print-entity (find-entity "birth" :filter ['= :date d1]))
-    (println "------------------")
-    (print-entity (find-entity "birth" :filter ['> :date d1]))
+    (println (if (seq? res) "ok" "ng"))
+    (println (class res))
     )
   )
 

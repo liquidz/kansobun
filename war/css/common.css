@@ -1,4 +1,4 @@
-body, h1, h2, h3, h4, div , p, ul, ol, li, fieldset { 
+body, header, nav, h1, h2, h3, h4, div, p, ul, ol, li, form, fieldset { 
 	margin: 0; padding: 0;
 }
 
@@ -34,3 +34,5 @@ input[type=submit] {
 }
 form input[type=submit]:hover { background: #bbb; }
 
+
+.clearer { height: 0; font-size: 0; text-indent: -10000px; clear: both; }

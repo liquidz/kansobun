@@ -1,7 +1,5 @@
 (ns mygaeds
-  (:use
-     [simply.core :only [defnk]]
-     )
+  (:use [clojure.contrib.singleton :only [global-singleton]])
   (:import
      [com.google.appengine.api.datastore
       DatastoreServiceFactory
@@ -13,7 +11,7 @@
      )
   )
 
-(def *ds-service* (delay (DatastoreServiceFactory/getDatastoreService)))
+(def *ds-service* (global-singleton #(DatastoreServiceFactory/getDatastoreService)))
 (def *transaction* nil)
 
 (defn mapkey->keyword [m]
@@ -46,7 +44,7 @@
             )
         ]
     (doseq [[k v] (dissoc data-map :parent)] (set-property e k v))
-    (.put (force *ds-service*) *transaction* e)
+    (.put (*ds-service*) *transaction* e)
     )
   )
 (defn update-entity [#^Entity e & data]
@@ -77,7 +75,7 @@
   )
 (defn query? [obj] (instance? Query obj))
 
-(defn prepare-query [query] (.prepare (force *ds-service*) query))
+(defn prepare-query [query] (.prepare (*ds-service*) query))
 
 (def filter-map
   {
@@ -117,14 +115,17 @@
   (.setAncestor query ancestor)
   )
 
-(defnk set-query-data [query-or-kind
-                       :offset 0 :limit nil :chunk-size nil :filter nil :sort nil :parent nil
-                       & option]
+(defn set-query-data [query-or-kind
+                      & {:keys [offset limit chunk-size filter sort parent desc?]
+                         :or {offset 0, limit nil, chunk-size nil, filter nil
+                              sort nil, parent nil, desc? false}
+                         }]
   (let [query (if (query? query-or-kind) query-or-kind (make-query query-or-kind))
         fetch-options (FetchOptions$Builder/withOffset offset)
         ]
     (when filter (add-filter query filter))
-    (when sort (add-sort query sort (and (not (empty? option)) (= (first option) :desc))))
+    ;(when sort (add-sort query sort (and (not (empty? option)) (= (first option) :desc))))
+    (when sort (add-sort query sort desc?))
     (when limit (.limit fetch-options limit))
     (when chunk-size (.chunkSize FetchOptions chunk-size))
     (when parent (set-ancestor query parent))
@@ -164,7 +165,7 @@
 
 
 (defn get-entity
-  ([#^Key key] (entity->map (.get (force *ds-service*) key)))
+  ([#^Key key] (entity->map (.get (*ds-service*) key)))
   ([kind id] (get-entity (create-key kind id)))
   )
 
@@ -172,14 +173,14 @@
   ([#^Key key]
    (let [keys (make-array Key 1)]
      (aset keys 0 key)
-     (.delete (force *ds-service*) *transaction* keys)
+     (.delete (*ds-service*) *transaction* keys)
      )
    )
   ([kind id] (delete-entity (create-key kind id)))
   )
 
 (defmacro with-transaction [& body]
-  `(let [service# (force *ds-service*)
+  `(let [service# (*ds-service*)
          txn# (.beginTransaction service#)
          ]
      (try

@@ -3,29 +3,57 @@ Kanso.makeLink = function(url, label){
 	return $("<a href='"+ url +"'>" + label + "</a>");
 };
 
-Kanso.views = ["#introduction", "#impression", "#search"];
-Kanso.nowView = "#introduction";
-Kanso.lastView = "#introduction";
-Kanso.fadeSpeed = 100;
+//Kanso.views = ["#introduction", "#impression", "#search"];
+//Kanso.nowView = "#introduction";
+//Kanso.lastView = "#introduction";
+Kanso.nowScreen = "#new_user";
+Kanso.lastScreen = Kanso.nowScreen;
+Kanso.toggleSpeed = 100;
 
-Kanso.toggleView = function(target){
-	if(target !== Kanso.nowView){
-		Kanso.lastView = Kanso.nowView;
-		Kanso.nowView = target;
-	
-		$.each(Kanso.views, function(i, v){
-			if(v === target){
-				$(v).show(100);
-			} else {
-				$(v).hide(100);
-			}
-		});
+Kanso.show = function(id, fn){
+	console.log("showing: " + id);
+	if(Mia.isNull(fn)){
+		$(id).show(Kanso.toggleSpeed);
+	} else {
+		$(id).show(Kanso.toggleSpeed, fn);
+	}
+};
+Kanso.hide = function(id, fn){
+	console.log("hiding: " + id);
+	if(Mia.isNull(fn)){
+		$(id).hide(Kanso.toggleSpeed);
+	} else {
+		$(id).hide(Kanso.toggleSpeed, fn);
 	}
 };
 
-Kanso.back = function(){
-	Kanso.toggleView(Kanso.lastView);
+Kanso.toggleScreen = function(id, fn){
+	if(id !== Kanso.nowScreen){
+		var hoge = $(Kanso.nowScreen);
+		console.log(hoge);
+		hoge.hide(Kanso.toggleSpeed, function(){
+			$(id).show(Kanso.toggleSpeed, function(){
+				Kanso.lastScreen = Kanso.nowScreen;
+				Kanso.nowScreen = id;
+
+				if(! Mia.isNull(fn)){ fn(); }
+			});
+		});
+//		Kanso.hide(Kanso.nowScreen, function(){
+//			Kanso.show(id, function(){
+//				Kanso.lastScreen = Kanso.nowScreen;
+//				Kanso.nowScreen = id;
+//				if(! Mia.isNull(fn)){ fn(); }
+//			});
+//		});
+	}
 };
+
+Kanso.setLoadingGif = function(target){
+	$(target).html("<img src='/img/ajax-loader.gif' alt='loading' />");
+};
+
+Kanso.back = function(){ Kanso.toggleScreen(Kanso.lastScreen); };
 
 Kanso.checkInitialLocation = function(){
 	var hash = document.location.hash;
@@ -52,28 +80,28 @@ Kanso.showTagLinks = function(tagArr){
 	});
 };
 
-Kanso.showImpression = function(impKeyStr){
-	$("#impression_content").show();
-	$("#get_other_impressions").show();
-	$("#other_impressions").hide();
-
-	Kanso.toggleView("#impression");
-	$.getJSON("/impression", {key: impKeyStr}, function(res){
-		$("#book_title").html(res.title);
-
-		var tagArr = $.map(res.tag, function(v){ return v.tag; });
-		var tagText = tagArr.join(", ");
-
-		Kanso.showTagLinks(tagArr);
-		$("#new_tag").val(tagText);
-		$("#impression_user").html(res.username);
-		$("#impression_date").html(res.date);
-		$("#impression_text").html(res.text);
-
-		$("#impression").show(100);
-		Kanso.showingBookKeyStr = res.parentkey;
-	});
-};
+//Kanso.showImpression = function(impKeyStr){
+//	$("#impression_content").show();
+//	$("#get_other_impressions").show();
+//	$("#other_impressions").hide();
+//
+//	Kanso.toggleView("#impression");
+//	$.getJSON("/impression", {key: impKeyStr}, function(res){
+//		$("#book_title").html(res.title);
+//
+//		var tagArr = $.map(res.tag, function(v){ return v.tag; });
+//		var tagText = tagArr.join(", ");
+//
+//		Kanso.showTagLinks(tagArr);
+//		$("#new_tag").val(tagText);
+//		$("#impression_user").html(res.username);
+//		$("#impression_date").html(res.date);
+//		$("#impression_text").html(res.text);
+//
+//		$("#impression").show(100);
+//		Kanso.showingBookKeyStr = res.parentkey;
+//	});
+//};
 
 Kanso.showTagBooks = function(tag){
 	Kanso.toggleView("#search");
@@ -87,6 +115,50 @@ Kanso.showTagBooks = function(tag){
 	});
 };
 
+Kanso.makeImpressionLinks = function(impression){
+	var impressionAnchor = Kanso.makeLink("/#!/impression/" + impression.keystr, impression.title);
+	var userAnchor = Kanso.makeLink("/#!/user/" + impression.username, impression.username);
+
+	return $("<li></li>").append(impressionAnchor + "(" + userAnchor + ")");
+};
+
+// =getRecentImpressionList
+Kanso.getRecentImpressionList = function(){
+	var ul = $("#recent_impressions ul");
+	Kanso.setLoadingGif(ul);
+	$.getJSON("/impressions", {}, function(res){
+		ul.html("");
+		$.each(res, function(i, v){
+			//var anchor = $("<a href='/#!/impression/"+ v.keystr + "'>"+ v.title +" ("+ v.username +")</a>");
+			//anchor.bind("click", function(){
+			//	Kanso.showImpression(v.keystr);
+			//});
+			//ul.append($("<li></li>").append(anchor));
+			ul.append(Kanso.makeImpressionLinks(v));
+		});
+	});
+};
+
+Kanso.showUserImpressions = function(name, page){
+	$.getJSON("/impressions", {user: name, page: page}, function(res){
+		$.each(res, function(i, v){
+
+		});
+	});
+};
+
+
+Kanso.initLoginForm = function(){
+	$("#login_link").show();
+	$("#auth").css("position", "relative");
+	$("#login_form").css("position", "absolute").css("right", "0").hide();
+	$("#login_link a").bind("click", function(){
+		$("#login_form").toggle(Kanso.toggleSpeed, function(){
+			$("#login_form input[type=password]").focus();
+		});
+	});
+};
+
 // =parts {{{
 Kanso.loadLogin = function(){
 	$.getJSON("/parts/login", {}, function(res){
@@ -95,6 +167,9 @@ Kanso.loadLogin = function(){
 			$("#login_form").hide();
 			$("#login_link").hide();
 			$("#logout_link").show();
+
+			// toggle screen to recent impression if user logged in
+			Kanso.toggleScreen("#recent_impressions");
 		}
 	});
 };
@@ -114,49 +189,28 @@ Kanso.loadSecretQuestions = function(){
 $(function(){
 	Kanso.checkInitialLocation();
 
+	Kanso.initLoginForm();
 	Kanso.loadLogin();
 	Kanso.loadSecretQuestions();
 
-	$("#login_link").show();
-	$("#auth").css("position", "relative");
-	$("#login_form").css("position", "absolute").css("right", "0").hide();
-	$("#login_link a").bind("click", function(){
-		$("#login_form").toggle(Kanso.fadeSpeed, function(){
-			$("#login_form input[type=password]").focus();
-		});
+	//$("a.back").bind("click", Kanso.back);
 
-	});
-
-	$.getJSON("/list", {}, function(res){
-		var ul = $("#recent_list ul");
-		ul.html("");
-		$.each(res, function(i, v){
-			var anchor = $("<a href='/#!/impression/"+ v.keystr + "'>"+ v.title +" ("+ v.username +")</a>");
-			anchor.bind("click", function(){
-				Kanso.showImpression(v.keystr);
-			});
-			ul.append($("<li></li>").append(anchor));
-		});
-	});
-
-	$("a.back").bind("click", Kanso.back);
-
-	$("a#edit_tag").bind("click", function(){
-			$("#edit_tag").hide();
-			$("#book_tag").hide(100, function(){
-				$("#new_tag").bind("keypress", function(e){
-					if(e.charCode === 13){
-						var newtag = $(e.target).val();
-						$.post("/update_tag", {key: Kanso.showingBookKeyStr, tag: newtag}, function(savedTagJsonStr){
-							Kanso.showTagLinks($.parseJSON(savedTagJsonStr));
-							$("#book_tag").show();
-							$("#new_tag").hide();
-							$("#edit_tag").show();
-						});
-					}
-				}).show();
-			});
-	});
+	//$("a#edit_tag").bind("click", function(){
+	//		$("#edit_tag").hide();
+	//		$("#book_tag").hide(100, function(){
+	//			$("#new_tag").bind("keypress", function(e){
+	//				if(e.charCode === 13){
+	//					var newtag = $(e.target).val();
+	//					$.post("/update_tag", {key: Kanso.showingBookKeyStr, tag: newtag}, function(savedTagJsonStr){
+	//						Kanso.showTagLinks($.parseJSON(savedTagJsonStr));
+	//						$("#book_tag").show();
+	//						$("#new_tag").hide();
+	//						$("#edit_tag").show();
+	//					});
+	//				}
+	//			}).show();
+	//		});
+	//});
 
 	$("a#get_other_impressions").bind("click", function(){
 		$.getJSON("/impressions", {key: Kanso.showingBookKeyStr}, function(res){
@@ -179,6 +233,31 @@ $(function(){
 			target.show();
 		});
 	});
+
+	$("a.nav").bind("click", function(e){
+		var target = $(e.target);
+		var id = target.attr("href").split(/\//)[2];
+		Kanso.toggleScreen("#" + id, function(){
+			// toggle .selected
+			$("nav ul li.selected").removeClass("selected");
+			$("nav ul li a[href=/#!/"+id+"]").parent().addClass("selected");
+
+			// optional
+			if(id === "recent_impressions"){
+				Kanso.getRecentImpressionList();
+			} else if(id === "recent_users"){
+				Kanso.getRecentUserList();
+			} else {
+				console.log("sonota: " + id);
+			}
+		});
+	}).bind("mouseover", function(e){
+		$(e.target).parent().animate({paddingBottom: "10px"}, 100);
+	}).bind("mouseout", function(e){
+		$(e.target).parent().animate({paddingBottom: "5px"}, 100);
+	});
+
+	$("a.back").bind("click", Kanso.back);
 
 //	$("input#search").bind("keypress", function(e){
 //		if(e.charCode === 13){

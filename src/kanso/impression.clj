@@ -26,31 +26,31 @@
     )
   )
 
-(defn get-impression-list [{limit-str "limit", page-str "page", sort "sort"
-                            direction-str "direction", parent-key-str "parent", user "user"
+(defn get-impression-list [{limit-str :limit, page-str :page, sort :sort
+                            direction-str :direction, parent-key-str :parent, user :user
                             :or {limit-str "5", sort "date", page-str "1"
                                  direction-str "desc", parent-key-str nil, user nil}}]
   (let [limit (parse-int limit-str)
         page (parse-int page-str)
-        direction (if (= direction-str "desc") :desc :asc)
+        direction (= direction-str "desc")
         offset (* limit (dec page))
         parent (if-not (nil? parent-key-str) (str->key parent-key-str))
-        [query _] (set-query-data *impression-entity* :sort sort direction)
+        [query _] (set-query-data *impression-entity* :sort sort :desc? direction)
         ]
-    (when-not (nil? user) (add-filter query '= :user user))
+    (when-not (nil? user) (add-filter query '= :username user))
     (when (key? parent) (set-ancestor query parent))
 
     (find-entity query :limit limit :offset offset)
     )
   )
 
-(defn get-impressions-from-book-key [{book-key-str "key", :or {book-key-str ""}}]
-  (if (string/blank? book-key-str) []
-    (find-entity *impression-entity* :parent (str->key book-key-str))
-    )
-  )
+;(defn get-impressions-from-book-key [{book-key-str :key, :or {book-key-str ""}, :as arg}]
+;  (if (string/blank? book-key-str) []
+;    (get-impressions-from-book-key (assoc arg :parent book-key-str))
+;    )
+;  )
 
-(defn get-impression [{impression-key-str "key" :or {impression-key-str nil}}]
+(defn get-impression [{impression-key-str :key, :or {impression-key-str nil}}]
   (if (string/blank? impression-key-str) {}
     (let [key (str->key impression-key-str)
           impression (get-entity key)
@@ -68,7 +68,7 @@
         tags (if (list? tag-str-or-list)
                tag-str-or-list (split-tag tag-str-or-list))
         ]
-    (doseq [tag (remove #(some (fn [et] (= % (:tag et)))) tags)]
+    (doseq [tag (remove #(some (fn [et] (= % (:tag et))) exist-tags) tags)]
       (put-entity *tag-entity* :parent parent-book :tag tag :fixed false)
       )
     )
@@ -97,7 +97,8 @@
     (create-tags parent-book tags)
     (put-entity *impression-entity* :parent parent-book
                 :title title :text text :username username
-                :avator (if-not (string/blank? mail) (mail->gravatar mail))
+;                :avator (if-not (string/blank? mail) (mail->gravatar mail))
+                :mailmd5 (if-not (string/blank? mail) (str->md5 mail))
                 :date (now)
                 )
     )
@@ -115,7 +116,7 @@
     )
   )
 
-(defn save-impression-from-mail [{:keys [subject from to body]} session]
+(defn save-impression-from-mail [{:keys [subject from to body]}]
   (if (or (string/blank? subject) (string/blank? body))
     (return-error-mail from "subject or body is blank")
     (let [[title & tags] (split-title-and-tag subject)]
@@ -126,7 +127,7 @@
           (if (nil? username)
             (return-error-mail "invalid mail address")
             (do
-              (put-impression username (if-not guest? from) title tags body)
+              (put-impression username from title tags body)
               (return-success-mail from "post successful")
               )
             )

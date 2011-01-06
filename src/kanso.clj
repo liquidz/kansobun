@@ -2,14 +2,15 @@
   (:gen-class :extends javax.servlet.http.HttpServlet)
   (:use
      [compojure.core :only [defroutes GET POST wrap!]]
+     [compojure.route :only [not-found]]
      [ring.util.servlet :only [defservice]]
      [clojure.contrib.json :only [json-str]]
      mygaeds
-     [kanso constant user impression util]
+;     [kanso constant user impression util]
      [ring.util.response :only [redirect]]
      )
+  (:use [kanso constant user impression util] :reload-all)
   (:require
-     [compojure.route :as route]
      [clojure.contrib.logging :as log]
      [ring.middleware.session :as session]
      )
@@ -32,10 +33,12 @@
 
 
 (defroutes api-routes
-  (jsonGET "/list" {params :params} (get-impression-list params))
-  (jsonGET "/impression" {params :params} (get-impression params))
-  (jsonGET "/impressions" {params :params} (get-impressions-from-book-key params))
+  (jsonGET "/impression" {params :params} (get-impression (convert-map params)))
+  (jsonGET "/impressions" {params :params} (get-impression-list (convert-map params)))
+;  (jsonGET "/book_impressions" {params :params} (get-impressions-from-book-key (convert-map params)))
   (jsonGET "/tag" {params :params} (get-books-with-tag (convert-map params)))
+  (jsonGET "/user" {params :params} (get-user (convert-map params)))
+  (jsonGET "/users" {params :params} (get-user-list (convert-map params)))
 ;  (POST "/search" {params :params} (search params))
   (POST "/save" {params :params, session :session} (save-impression (convert-map params) session))
   (POST "/update_tag" {params :params} (update-tag (convert-map params)))
@@ -56,15 +59,10 @@
   (jsonGET "/parts/secret_questions" _ *secret-questions*)
   (GET "/check" {session :session} (println "session:" session) session)
   (POST "/_ah/mail/*" {params :params, :as req} (save-impression-from-mail (convert-map params)) "fin")
-  (route/not-found "page not found")
+  (not-found "page not found")
   )
 
-(defroutes app
-  api-routes
-  auth-routes
-  parts-route
-  )
-
+(defroutes app api-routes auth-routes parts-route)
 (wrap! app session/wrap-session)
 (defservice app)
 

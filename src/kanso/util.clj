@@ -14,7 +14,9 @@
 
 (def delete-html-tag (partial string/replace-re #"<.+?>" ""))
 (def parse-int #(Integer/parseInt %))
-(defn split-tag [s] (string/split #"\s*,\s*" s))
+(defn split-tag [s]
+  (if (string/blank? s) []
+    (string/split #"\s*,\s*" s)))
 
 (defn bytes->hex-str [bytes]
   (apply str (map #(string/tail 2 (str "0" (Integer/toHexString (bit-and 0xff %)))) bytes))
@@ -58,7 +60,7 @@
   )
 
 (defn remove-extra-key [m]
-  (dissoc m :entity :parent :key :key-name :enable :fixed)
+  (dissoc m :entity :parent :key :key-name :fixed :mailhash :question :answer)
   )
 
 (defn entity-list->json [els]
@@ -67,12 +69,14 @@
 
 (defn- json-conv [obj]
   (cond
-    (list? obj) (map json-conv obj)
+    (or (seq? obj) (list? obj)) (map json-conv obj)
     (map? obj) (remove-extra-key obj)
     :else obj
     )
   )
-(defn to-json [obj] (json-str (json-conv obj)))
+(defn to-json [obj]
+  (json-str (json-conv obj))
+  )
 
 (defn mail->gravatar [mail]
   (str "http://www.gravatar.com/avatar/" (str->md5 mail))

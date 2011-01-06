@@ -87,4 +87,26 @@
     )
   )
 
+(defn get-user [{user-key-str :key, :or {user-key-str nil}}]
+  (if (string/blank? user-key-str) {}
+    (get-entity (str->key user-key-str))
+    )
+  )
+(defn get-user-list [{limit-str :limit, page-str :page, sort :sort
+                      direction-str :direction, parent-key-str :parent, name :name
+                      :or {limit-str "5", sort "date", page-str "1"
+                           direction-str "desc", parent-key-str nil, name nil}}]
+  (let [limit (parse-int limit-str)
+        page (parse-int page-str)
+        direction (= direction-str "desc")
+        offset (* limit (dec page))
+        parent (if-not (nil? parent-key-str) (str->key parent-key-str))
+        [query _] (set-query-data *user-entity* :sort sort :desc? direction)
+        ]
+    (when-not (nil? name) (add-filter query '= :name name))
+    (when (key? parent) (set-ancestor query parent))
+
+    (find-entity query :limit limit :offset offset)
+    )
+  )
 

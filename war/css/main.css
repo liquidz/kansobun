@@ -99,9 +99,6 @@ header nav ul li a:hover {
 /* =screen */
 #screen {
 	overflow: hidden;
-	/*
-	margin: 10px 1% 10px 1%;
-	*/
 	margin: 20px auto;
 	width: 1024px;
 }
@@ -109,9 +106,6 @@ header nav ul li a:hover {
 /* =main_screen */
 #main_screen {
 	float: left;
-	/*
-	width: 58%;
-	*/
 	width: 600px;
 	border: 1px solid #f00;
 }
@@ -121,17 +115,15 @@ header nav ul li a:hover {
 
 /* =sub_screen */
 #sub_screen {
-	/*
-	width: 38%;
-	float: left;
-	*/
 	width: 400px;
 	float: right;
 	border: 1px solid #0f0;
 }
 
 #sub_screen session { display: none; }
+/*
 #sub_screen session#new_user { display: block; }
+*/
 
 /* =section */
 section h1 { font-size: medium; }
@@ -166,6 +158,11 @@ footer {
 	letter-spacing: 1px;
 }
 
+#recent_impressions .user:before { content: '('; }
+#recent_impressions .user:after { content: ')'; }
+#recent_impressions .text { margin-left: 1.5em; }
+
+img.avatar { width: 32px; height: 32px; }
 
 .hissu, .nini { font-size: x-small; }
 .hissu { color: #f00; }

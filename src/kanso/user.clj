@@ -8,20 +8,24 @@
   (:require [clojure.contrib.string :as string])
   )
 
-(defn exist-user? [{name :name}]
+(defn exist-user? [{name :name, :or {name nil}}]
+  ;(println "checking:" name)
+  ;(println "count:" (count-entity *user-entity* :filter ['= :name name] :limit 1))
+
   (or
+    (string/blank? name)
     (= name *guest-account*)
-    (= 1 (count-entity *user-entity* :filter ['= :name name] :limit 1))
+    (= 1 (count (find-entity *user-entity* :filter ['= :name name] :limit 1)))
     )
   )
 
 (defn get-user [& {:keys [name mail]}]
-  (let [find-body (fn [k v]
-                    (first (find-entity *user-entity* :filter ['= k v] :limit 1))
-                    )]
+  (let [get-user-body (fn [k v] (first (find-entity *user-entity* :filter ['= k v] :limit 1)))]
     (if name
-      (find-body :name name)
-      (if mail (find-body :mailhash (str->sha1 mail)))
+      (get-user-body :name name)
+      (if mail
+        (get-user-body :mailhash (str->sha1 mail))
+        )
       )
     )
   )
@@ -29,7 +33,7 @@
 (defn new-secret-mailaddress []
   (let [mail-address (str (rand-str 16) *mail-domain*)
         mail-hash (str->sha1 mail-address)]
-    (if (zero? (count-entity *user-entity* :filter ['= :mailhash mail-hash] :limit 1))
+    (if (zero? (count (find-entity *user-entity* :filter ['= :mailhash mail-hash] :limit 1)))
       [mail-address mail-hash]
       (new-secret-mailaddress)
       )
@@ -67,7 +71,7 @@
 (defn login [{mail :mail, :as params} session]
   (let [mail-hash (str->sha1 (string/trim mail))
         user (find-entity *user-entity* :filter ['= :mailhash mail-hash] :limit 1)
-        logined? (not (nil? user))
+        logined? (-> user first nil? not) ;(not (nil? user))
         username (if logined? (-> user first :name) "")
         ]
     ; update last login time
@@ -81,17 +85,57 @@
   (reset-secret-mailaddress name question answer)
   )
 
-(defn create-user [{:keys [name question answer]}]
-  (if-not (string/blank? (string/trim name))
-    (register-secret-mailaddress name question answer)
+(defn create-user [{:keys [name question answer], :or {name "", question "0", answer nil}}]
+  (if-not (string/blank? name)
+    ; when question is selected, answer must be inputted
+    (if-not (and (not= question "0") (string/blank? answer))
+      (register-secret-mailaddress name question answer)
+      )
     )
   )
 
-(defn get-user [{user-key-str :key, :or {user-key-str nil}}]
-  (if (string/blank? user-key-str) {}
-    (get-entity (str->key user-key-str))
+(defn craete-user2 [{:keys [name password mail], :or {name *guest-account*}}]
+  (when-not (or (string/blank? name) (string/blank? passowrd) (string/blank? mail))
+    (let [parent-user (put-entity *user-entity*
+                                  :name name
+                                  :password (str->sha1 password)
+                                  )]
+      (put-entity *mail-entity* :parent parent-user :mail (str->md5 mail))
+      )
     )
   )
+
+(defn add-mail [{:keys [name password mail]}]
+  (when-not (or (string/blank? name) (string/blank? passowrd) (string/blank? mail))
+    (let [user (find-entity *user-entity* :filter [['= :name name] ['= :password (str->sha1 password)]])]
+      (if-not (nil? user)
+        (put-entity *mail-entity* :parent (-> user first :key) :mail (str->md5 mail))
+        )
+      )
+    )
+  )
+
+(defn update-user-name [{:keys [name password mail]}]
+  (when-not (or (string/blank? name) (string/blank? passowrd) (string/blank? mail))
+    (let [mailhash (str->md5 mail)
+          user (first (find-entity *mail-entity* :filter ['= :mail mailhash]))]
+      (when-not (nil? user)
+        ; update user entity
+        (update-entity (:entity user) :name name)
+        ; update impression entity
+        (doseq [e (find-entity *impression-entity* :filter ['= :mailmd5 mailhash])]
+          (update-entity (:entity e) :username name)
+          )
+        )
+      )
+    )
+  )
+
+;(defn get-user [{user-key-str :key, :or {user-key-str nil}}]
+;  (if (string/blank? user-key-str) {}
+;    (get-entity (str->key user-key-str))
+;    )
+;  )
 (defn get-user-list [{limit-str :limit, page-str :page, sort :sort
                       direction-str :direction, parent-key-str :parent, name :name
                       :or {limit-str "5", sort "date", page-str "1"

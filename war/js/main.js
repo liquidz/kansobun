@@ -9,6 +9,8 @@ Kanso.makeLink = function(url, label){
 Kanso.nowScreen = "#new_user";
 Kanso.lastScreen = Kanso.nowScreen;
 Kanso.toggleSpeed = 100;
+Kanso.impressionShortTextLimit = 5;
+Kanso.space = function(){ return $("<span>").html("&nbsp;").addClass("space"); };
 
 Kanso.show = function(id, fn){
 	console.log("showing: " + id);
@@ -56,52 +58,47 @@ Kanso.setLoadingGif = function(target){
 Kanso.back = function(){ Kanso.toggleScreen(Kanso.lastScreen); };
 
 Kanso.checkInitialLocation = function(){
-	var hash = document.location.hash;
-	if(hash.indexOf("impression") !== -1){
-		var key = hash.split(/\//)[2];
-		Kanso.showImpression(key);
-	} else if(hash.indexOf("tag") !== -1){
-		var tag = hash.split(/\//)[2];
-		Kanso.showTagBooks(tag);
-	}
+//	var hash = document.location.hash;
+//	if(hash.indexOf("impression") !== -1){
+//		var key = hash.split(/\//)[2];
+//		Kanso.showImpression(key);
+//	} else if(hash.indexOf("tag") !== -1){
+//		var tag = hash.split(/\//)[2];
+//		Kanso.showTagBooks(tag);
+//	}
 };
 
 
-Kanso.showTagLinks = function(tagArr){
-	var bookTag = $("#book_tag");
-	bookTag.html("");
-	$.each(tagArr, function(i, v){
-		var link = Kanso.makeLink("/#!/tag/" + v, v);
-		link.bind("click", function(){
-			Kanso.showTagBooks(v);
-		});
-		bookTag.append(link);
-		bookTag.append(",");
+Kanso.makeTagLinks = function(tags){
+	var span = $("<span>");
+
+	$.each(tags, function(i, v){
+		Kanso.makeLink("/#!/tag/" + v.tag, v.tag)
+			.bind("click", function(){ Kanso.showTagBooks(v.tag); })
+			.appendTo(span);
+	});
+
+	return span;
+};
+
+Kanso.showImpression = function(impKeyStr){
+	//$("#impression_content").show();
+	//$("#get_other_impressions").show();
+	//$("#other_impressions").hide();
+
+	//Kanso.toggleView("#impression");
+	$.getJSON("/impression", {key: impKeyStr}, function(res){
+
+		$("#impression .title").html(res.title);
+		$("#impression .tag").html("").append(Kanso.makeTagLinks(res.tag));
+		$("#impression .user").html(res.username);
+		$("#impression .date").html(res.date);
+		$("#impression .text").html(res.text);
+
+		Kanso.show("#impression");
+		//Kanso.showingBookKeyStr = res.parentkey;
 	});
 };
-
-//Kanso.showImpression = function(impKeyStr){
-//	$("#impression_content").show();
-//	$("#get_other_impressions").show();
-//	$("#other_impressions").hide();
-//
-//	Kanso.toggleView("#impression");
-//	$.getJSON("/impression", {key: impKeyStr}, function(res){
-//		$("#book_title").html(res.title);
-//
-//		var tagArr = $.map(res.tag, function(v){ return v.tag; });
-//		var tagText = tagArr.join(", ");
-//
-//		Kanso.showTagLinks(tagArr);
-//		$("#new_tag").val(tagText);
-//		$("#impression_user").html(res.username);
-//		$("#impression_date").html(res.date);
-//		$("#impression_text").html(res.text);
-//
-//		$("#impression").show(100);
-//		Kanso.showingBookKeyStr = res.parentkey;
-//	});
-//};
 
 Kanso.showTagBooks = function(tag){
 	Kanso.toggleView("#search");
@@ -115,11 +112,41 @@ Kanso.showTagBooks = function(tag){
 	});
 };
 
-Kanso.makeImpressionLinks = function(impression){
-	var impressionAnchor = Kanso.makeLink("/#!/impression/" + impression.keystr, impression.title);
-	var userAnchor = Kanso.makeLink("/#!/user/" + impression.username, impression.username);
+Kanso.makeAvatar = function(impression){ // {{{
+	var res = null;
 
-	return $("<li></li>").append(impressionAnchor + "(" + userAnchor + ")");
+	var src = "http://www.gravatar.com/avatar/"
+
+	if(impression.usename !== "guest" && !Mia.isBlank(impression.mailmd5)){
+		res = $("<img>").attr("src", "http://www.gravatar.com/avatar/" + impression.mailmd5);
+	} else {
+		res = $("<img>").attr("src", "/img/noavatar.png");
+	}
+	return res.attr("alt", "avatar").addClass("avatar");
+}; // }}}
+
+Kanso.cutText = function(text){
+	return ((text.length >= Kanso.impressionShortTextLimit)
+			? (text.substr(0, Kanso.impressionShortTextLimit) + "...")
+			: text);
+};
+
+Kanso.makeImpressionLinks = function(impression){
+	var li = $("<li>");
+
+	Kanso.makeLink("/#!/impression/" + impression.keystr, impression.title)
+		.addClass("impression")
+		.bind("click", function(){ Kanso.showImpression(impression.keystr); })
+		.appendTo(li);
+
+	Kanso.space().appendTo(li);
+	$("<span>")
+		.addClass("user")
+		.append(Kanso.makeAvatar(impression))
+		.append(Kanso.makeLink("/#!/user/" + impression.username, impression.username))
+		.appendTo(li);
+
+	return li.after($("<p>").addClass("text").html(Kanso.cutText(impression.text)));
 };
 
 // =getRecentImpressionList
@@ -159,8 +186,7 @@ Kanso.initLoginForm = function(){
 	});
 };
 
-// =parts {{{
-Kanso.loadLogin = function(){
+Kanso.loadLogin = function(){ // {{{
 	$.getJSON("/parts/login", {}, function(res){
 		if(res.flag){
 			$("#login_user").html(res.name);
@@ -172,9 +198,9 @@ Kanso.loadLogin = function(){
 			Kanso.toggleScreen("#recent_impressions");
 		}
 	});
-};
+}; // }}}
 
-Kanso.loadSecretQuestions = function(){
+Kanso.loadSecretQuestions = function(){ // {{{
 	var target = $(".load_secret_questions");
 	target.append("<option>読み込み中</option>");
 	$.getJSON("/parts/secret_questions", {}, function(res){
@@ -183,8 +209,7 @@ Kanso.loadSecretQuestions = function(){
 			target.append("<option value='"+i+"'>"+v+"</option>");
 		});
 	});
-};
-// }}}
+}; // }}}
 
 $(function(){
 	Kanso.checkInitialLocation();
@@ -192,6 +217,7 @@ $(function(){
 	Kanso.initLoginForm();
 	Kanso.loadLogin();
 	Kanso.loadSecretQuestions();
+	Kanso.getRecentImpressionList();
 
 	//$("a.back").bind("click", Kanso.back);
 

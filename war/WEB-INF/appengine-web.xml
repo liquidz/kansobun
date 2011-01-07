@@ -5,6 +5,7 @@
 	<version>1</version>
 	<static-files>
 		<include path="/index.html" />
+		<include path="/test.htm" />
 		<include path="/favicon.ico" />
 		<include path="/css/**.css" />
 		<include path="/img/**.png" />

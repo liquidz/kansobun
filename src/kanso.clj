@@ -14,8 +14,6 @@
      [clojure.contrib.logging :as log]
      [ring.middleware.session :as session]
      )
-  )
-
 
 (defmacro jsonGET [path bind & body] `(GET ~path ~bind (to-json ~@body)))
 (defmacro jsonPOST [path bind & body] `(POST ~path ~bind (to-json ~@body)))
@@ -42,6 +40,9 @@
 ;  (POST "/search" {params :params} (search params))
   (POST "/save" {params :params, session :session} (save-impression (convert-map params) session))
   (POST "/update_tag" {params :params} (update-tag (convert-map params)))
+
+  (jsonGET "/gravatar/image" {{mail "mail"} :params} (gravatar-image mail))
+  (jsonGET "/gravatar/profile" {{mail "mail"} :params} (gravatar-profile mail))
   )
 
 (defroutes auth-routes ; {{{
@@ -70,3 +71,4 @@
   ; cgi63XgGzWSwSb4a@kanso.appspotmail.com
   ; =inu
   ; DLsEjbjuNzG4lEZO@kanso.appspotmail.com
+;zvgfjI8aJV9rBfwE@kanso.appspotmail.com

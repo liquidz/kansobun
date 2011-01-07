@@ -141,7 +141,11 @@
   )
 
 (defn count-entity [& args]
-  (.countEntities (prepare-query (first (apply set-query-data args))))
+  (let [[query _] (apply set-query-data args)]
+    (.countEntities (prepare-query query))
+    ; countEntities
+    )
+  ;(.countEntities (prepare-query (first (apply set-query-data args))))
   )
 
 (defn parse-long [obj]

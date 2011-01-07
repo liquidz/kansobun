@@ -13,7 +13,6 @@
 </head>
 <body>
 	<header>
-		<div>
 		<h1><a href="/">kanso</a></h1>
 		<p id="copy">本の感想を共有するだけのサービス</p>
 
@@ -36,12 +35,14 @@
 		<div class="clearer">&nbsp;</div>
 		</div>
 
+		<!--
 		<nav><ul>
 			<li class="selected"><a class="nav" href="/">トップ</a></li>
 			<li><a class="nav" href="/#!/new_user">名前の登録</a></li>
 			<li><a class="nav" href="/#!/spotlight">注目の本</a></li>
 			<li><a class="nav" href="/#!/recent_impressions">最近の感想</a></li>
 		</ul></nav>
+			-->
 
 	</header>
 
@@ -49,21 +50,33 @@
 	
 	<div id="screen">
 	<div id="main_screen">
-		<form method="POST" action="/save" id="save">
-			<fieldset>
-				<legend>本の感想を登録</legend>
-				<div class="left">
-					<p><input type="text" id="title" name="title" /></p>
-					<p><input type="text" id="tag" name="tag" /></p>
-					<p><textarea name="text"></textarea></p>
-				</div>
-				<input type="submit" value="ゲストとして投稿" />
-				<a class="nav" href="/#!/new_user">名前を登録して投稿</a>
-			</fieldset>
-		</form>
+		<nav><ul>
+			<li><a href="">register your impression</a></li>
+			<li><a href="">user registration</a></li>
+			<li><a href="">user registration</a></li>
+		</ul></nav>
+
+		<session id="recent_impressions">
+			<h1>recent impressions</h1>
+			<ul></ul>
+		</session>
 	</div>
 
 	<div id="sub_screen">
+		<session id="register_impression">
+			<form method="POST" action="/save" id="save">
+				<fieldset>
+					<legend>本の感想を登録</legend>
+					<div class="left">
+						<p><input type="text" id="title" name="title" /></p>
+						<p><input type="text" id="tag" name="tag" /></p>
+						<p><textarea name="text"></textarea></p>
+					</div>
+					<input type="submit" value="ゲストとして投稿" />
+					<a class="nav" href="/#!/new_user">名前を登録して投稿</a>
+				</fieldset>
+			</form>
+		</session>
 
 		<session id="new_user">
 			<h1>ユーザー登録</h1>
@@ -90,13 +103,16 @@
 			</form>
 		</session>
 
-		<session id="spotlight">
-			<h1>chumoku</h1>
+		<session id="">
+			<h1>impression</h1>
+			<p class="title"></p>
+			<p class="user"></p>
+			<p class="date"></p>
+			<pre class="text"></pre>
 		</session>
 
-		<session id="recent_impressions">
-			<h1>最近の感想</h1>
-			<ul></ul>
+		<session id="spotlight">
+			<h1>chumoku</h1>
 		</session>
 
 		<p><a class="back" href="javascript:void(0);">back</a></p>

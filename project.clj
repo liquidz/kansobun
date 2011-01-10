@@ -8,6 +8,7 @@
                  [com.google.appengine/appengine-api-1.0-sdk "1.4.0"]
                  [ring/ring-core "0.3.4"]
                  [ring/ring-servlet "0.3.4"]
+                 [org.clojars.liquidz/clj-gravatar "0.0.1"]
                  ]
   :dev-dependencies [[ring/ring-jetty-adapter "0.3.4"]
                      [am.ik/clj-gae-testing "0.2.0-SNAPSHOT"]

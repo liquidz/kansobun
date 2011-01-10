@@ -19,13 +19,21 @@
     )
   )
 
-(defn get-user [& {:keys [name mail]}]
+(defn get-user [& {:keys [name password mail]}]
   (let [get-user-body (fn [k v] (first (find-entity *user-entity* :filter ['= k v] :limit 1)))]
     (if name
       (get-user-body :name name)
       (if mail
-        (get-user-body :mailhash (str->sha1 mail))
+        (get-user-body :mail (str->md5 mail))
         )
+      )
+    )
+  )
+
+(defn get-user-from-mail [mail]
+  (let [m (find-entity *mail-entity* :filter ['= :mail (str->md5 mail)])]
+    (if-not (nil? m)
+      (get-entity (-> m first :parent))
       )
     )
   )
@@ -68,7 +76,7 @@
 
 ;(defrecord User [logined? mailhash date])
 
-(defn login [{mail :mail, :as params} session]
+(defn login2 [{mail :mail, :as params} session]
   (let [mail-hash (str->sha1 (string/trim mail))
         user (find-entity *user-entity* :filter ['= :mailhash mail-hash] :limit 1)
         logined? (-> user first nil? not) ;(not (nil? user))
@@ -81,42 +89,70 @@
     )
   )
 
+(defn login [{:keys [mail password], :as params}]
+  (let [p (:parent (first (find-entity *mail-entity* :filter ['= :mail (str->md5 mail)] :limit 1)))
+        user (if p (get-entity p))
+        loggedin? (= (:password user) (str->sha1 password))
+        ]
+    (when loggedin?  (update-entity (:entity user) :date (now)))
+
+    (with-session (redirect (get params :location "/"))
+                  {:loggedin? loggedin? :login-user (:name user)
+                   :message (if-not loggedin? "user name or password is incorrect")
+                   }
+                  )
+    )
+  )
+
 (defn reset-user [{:keys [name question answer]}]
   (reset-secret-mailaddress name question answer)
   )
 
-(defn create-user [{:keys [name question answer], :or {name "", question "0", answer nil}}]
-  (if-not (string/blank? name)
-    ; when question is selected, answer must be inputted
-    (if-not (and (not= question "0") (string/blank? answer))
-      (register-secret-mailaddress name question answer)
-      )
-    )
+;(defn create-user [{:keys [name question answer], :or {name "", question "0", answer nil}}]
+;  (if-not (string/blank? name)
+;    ; when question is selected, answer must be inputted
+;    (if-not (and (not= question "0") (string/blank? answer))
+;      (register-secret-mailaddress name question answer)
+;      )
+;    )
+;  )
+
+(defn put-mail-entity [parent mail]
+  (put-entity *mail-entity* :parent parent :mail (str->md5 mail))
   )
 
-(defn craete-user2 [{:keys [name password mail], :or {name *guest-account*}}]
-  (when-not (or (string/blank? name) (string/blank? passowrd) (string/blank? mail))
-    (let [parent-user (put-entity *user-entity*
-                                  :name name
-                                  :password (str->sha1 password)
-                                  )]
-      (put-entity *mail-entity* :parent parent-user :mail (str->md5 mail))
-      )
+(defn put-user-entity [name password fixed?]
+  (put-entity *user-entity* :name name :password (str->sha1 password) :fixed fixed?)
+  ;(let [user (put-entity *user-entity* :name name :password (str->sha1 password) :fixed fixed?)]
+  ;  (put-mail-entity user mail)
+  ;  user
+  ;  )
+  )
+
+(defn create-user [{:keys [name mail password], :or {name *default-name*}}]
+  (when-not (or (string/blank? name) (string/blank? password) (string/blank? mail))
+    (put-mail-entity (put-user-entity name password (not= name *default-name*)) mail)
+    ;(let [parent-user (put-entity *user-entity*
+    ;                              :name name
+    ;                              :password (str->sha1 password)
+    ;                              :fixed (not= name *default-name*)
+    ;                              )]
+    ;  (put-entity *mail-entity* :parent parent-user :mail (str->md5 mail))
+    ;  )
+    (redirect "/")
     )
   )
 
 (defn add-mail [{:keys [name password mail]}]
-  (when-not (or (string/blank? name) (string/blank? passowrd) (string/blank? mail))
+  (when-not (or (string/blank? name) (string/blank? password) (string/blank? mail))
     (let [user (find-entity *user-entity* :filter [['= :name name] ['= :password (str->sha1 password)]])]
-      (if-not (nil? user)
-        (put-entity *mail-entity* :parent (-> user first :key) :mail (str->md5 mail))
-        )
+      (if-not (nil? user) (put-mail-entity user mail))
       )
     )
   )
 
 (defn update-user-name [{:keys [name password mail]}]
-  (when-not (or (string/blank? name) (string/blank? passowrd) (string/blank? mail))
+  (when-not (or (string/blank? name) (string/blank? password) (string/blank? mail))
     (let [mailhash (str->md5 mail)
           user (first (find-entity *mail-entity* :filter ['= :mail mailhash]))]
       (when-not (nil? user)

@@ -10,7 +10,7 @@
   )
 
 
-(defn put-book [title]
+(defn put-book-entity [title]
   (let [res (find-entity *book-entity* :filter ['= :title title] :limit 1)]
     (if (empty? res)
       (put-entity *book-entity* :title title)
@@ -92,8 +92,8 @@
     )
   )
 
-(defn- put-impression [username mail title tags text]
-  (let [parent-book (put-book title)]
+(defn- put-impression-entity [username mail title tags text]
+  (let [parent-book (put-book-entity title)]
     (create-tags parent-book tags)
     (put-entity *impression-entity* :parent parent-book
                 :title title :text text :username username
@@ -104,12 +104,12 @@
     )
   )
 
-(defn save-impression [{:keys [title tag mail text]} session]
-  (let [username (if (:logined? session) (:login-user session) *guest-account*)]
+(defn save-impression-from-web [{:keys [title tag mail text]} session]
+  (let [username (if (:loggedin? session) (:login-user session) *guest-account*)]
     (if (or (string/blank? title) (string/blank? text))
       (with-message (redirect "/") "title or impression is null")
       (do
-        (put-impression username mail title tag text)
+        (put-impression-entity username mail title tag text)
         (with-message (redirect "/") "success to save impression")
         )
       )
@@ -122,12 +122,13 @@
     (let [[title & tags] (split-title-and-tag subject)]
       (if (string/blank? title)
         (return-error-mail from "title is blank")
-        (let [guest? (= *guest-mail-address* to)
+        (let [user (get-user-from-mail from)
+              guest? (= *guest-mail-address* to)
               username (if guest? *guest-account* (:name (get-user :mail to)))]
           (if (nil? username)
             (return-error-mail "invalid mail address")
             (do
-              (put-impression username from title tags body)
+              (put-impression-entity username from title tags body)
               (return-success-mail from "post successful")
               )
             )

@@ -14,6 +14,7 @@
      [clojure.contrib.logging :as log]
      [ring.middleware.session :as session]
      )
+  )
 
 (defmacro jsonGET [path bind & body] `(GET ~path ~bind (to-json ~@body)))
 (defmacro jsonPOST [path bind & body] `(POST ~path ~bind (to-json ~@body)))
@@ -38,15 +39,18 @@
   (jsonGET "/user" {params :params} (get-user (convert-map params)))
   (jsonGET "/users" {params :params} (get-user-list (convert-map params)))
 ;  (POST "/search" {params :params} (search params))
-  (POST "/save" {params :params, session :session} (save-impression (convert-map params) session))
+  (POST "/save" {params :params, session :session} (save-impression-from-web (convert-map params) session))
   (POST "/update_tag" {params :params} (update-tag (convert-map params)))
 
-  (jsonGET "/gravatar/image" {{mail "mail"} :params} (gravatar-image mail))
-  (jsonGET "/gravatar/profile" {{mail "mail"} :params} (gravatar-profile mail))
+  ;(jsonGET "/gravatar/image" {{mail "mail"} :params} (gravatar-image mail))
+  ;(jsonGET "/gravatar/profile" {{mail "mail"} :params} (gravatar-profile mail))
   )
 
 (defroutes auth-routes ; {{{
-  (GET "/login" {params :params, session :session} (login (convert-map params) session))
+  ;(GET "/login" {params :params, session :session} (login (convert-map params) session))
+  (GET "/login" {params :params, session :session}
+    (println* "login info =" (login (convert-map params)))
+    )
   (GET "/logout" _ (assoc (redirect "/") :session {}))
   (jsonGET "/exist_user" {params :params} (exist-user? (convert-map params)))
   (jsonPOST "/new_user" {params :params} (create-user (convert-map params)))
@@ -55,11 +59,13 @@
 
 (defroutes parts-route
   (jsonGET "/parts/login" {session :session}
-    {:flag (:logined? session) :name (:login-user session)}
+    {:flag (:loggedin? session) :name (:login-user session)}
     )
-  (jsonGET "/parts/secret_questions" _ *secret-questions*)
+  ;(jsonGET "/parts/secret_questions" _ *secret-questions*)
+  (jsonGET "/parts/message" {session :session} (with-session (:message session) {}))
+  (GET "/parts/message/set" {{msg "msg"} :params} (with-message))
   (GET "/check" {session :session} (println "session:" session) session)
-  (POST "/_ah/mail/*" {params :params, :as req} (save-impression-from-mail (convert-map params)) "fin")
+  (POST "/_ah/mail/post*" {params :params, :as req} (save-impression-from-mail (convert-map params)) "fin")
   (not-found "page not found")
   )
 

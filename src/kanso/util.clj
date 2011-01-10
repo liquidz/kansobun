@@ -6,12 +6,6 @@
      [java.security MessageDigest]
      [java.net URLEncoder URLDecoder]
      )
-
-  ; gravatar
-  (:require
-     [clojure.contrib.io :as io]
-     [clojure.contrib.json :as json]
-     )
   )
 
 (defmacro aif [expr then & [else]]
@@ -48,9 +42,13 @@
   ([] (now "Asia/Tokyo"))
   )
 
+(defn default-response [obj]
+  (if (map? obj) obj {:status 200 :Content-Type "text/html" :body obj})
+  )
+
 (defn with-session
   ([{session :session, :as req} res m]
-   (assoc res :session (conj (aif session it {}) m)))
+   (assoc (default-response res) :session (conj (aif session it {}) m)))
   ([res m] (with-session nil res m))
   )
 
@@ -94,47 +92,7 @@
   (string/split #"\s*#" s)
   )
 
-
-
-; =gravatar {{{
-(defn- encode [x] (if (string? x) (URLEncoder/encode x) x))
-(defn- gravatar-url [secure?]
-  (if secure?
-    "https://secure.gravatar.com/"
-    "http://www.gravatar.com/"
-    )
+(defn println* [& args]
+  (apply println args)
+  (last args)
   )
-; =map->get-parameter
-(defn map->get-parameter
-  "convert map to GET parameter"
-  [m]
-  (let [ls (map (fn [[k v]] (str (name k) "=" (encode v)))
-                (remove #(-> % second nil?) m))]
-    (if-not (empty? ls)
-      (str "?" (string/join "&" ls))
-      )
-    )
-  )
-; =gravatar-image
-(defn gravatar-image
-  "get gravatar image url from mail address"
-  [mail-address & {:keys [size default secure?] :or {size nil, default nil, secure? false}}]
-  (if-not (string/blank? mail-address)
-    (str (gravatar-url secure?)
-         "avatar/"
-         (str->md5 mail-address)
-         (map->get-parameter {:s size :d default})
-         )
-    )
-  )
-; =gravatar-profile
-(defn gravatar-profile
-  "get gravatar profile from mail address"
-  [mail-address & {:keys [secure?] :or {secure? false}}]
-  (if-not (string/blank? mail-address)
-    (let [url (str (gravatar-url secure?) (str->md5 mail-address) ".json")]
-      (json/read-json (apply str (io/read-lines url)))
-      )
-    )
-  )
-; }}}

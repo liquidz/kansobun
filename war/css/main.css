@@ -1,7 +1,7 @@
 @import "common.css";
 
 /* default hidden */
-#logout_link, #reset{
+#logout_link {
 	display: none;
 }
 
@@ -96,6 +96,11 @@ header nav ul li a:hover {
 }
 /* }}} */
 
+#message {
+	font-weight: bold;
+	color: #f00;
+}
+
 /* =screen */
 #screen {
 	overflow: hidden;
@@ -120,9 +125,9 @@ header nav ul li a:hover {
 	border: 1px solid #0f0;
 }
 
-#sub_screen session { display: none; }
 /*
-#sub_screen session#new_user { display: block; }
+#sub_screen session { display: none; }
+#sub_screen session#register_impression { display: block; }
 */
 
 /* =section */

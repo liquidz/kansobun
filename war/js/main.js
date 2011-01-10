@@ -200,6 +200,12 @@ Kanso.loadLogin = function(){ // {{{
 	});
 }; // }}}
 
+Kanso.loadMessage = function(){
+	$.getJSON("/parts/message", {}, function(msg){
+		$("#message").html(msg);
+	});
+};
+
 Kanso.loadSecretQuestions = function(){ // {{{
 	var target = $(".load_secret_questions");
 	target.append("<option>読み込み中</option>");
@@ -216,8 +222,9 @@ $(function(){
 
 	Kanso.initLoginForm();
 	Kanso.loadLogin();
-	Kanso.loadSecretQuestions();
+	//Kanso.loadSecretQuestions();
 	Kanso.getRecentImpressionList();
+	Kanso.loadMessage();
 
 	//$("a.back").bind("click", Kanso.back);
 

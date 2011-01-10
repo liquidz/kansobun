@@ -25,8 +25,9 @@
 		<div id="auth">
 			<span id="login_link"><a href="javascript:void(0);">ログイン</a></span>
 			<form id="login_form" method="GET" action="/login">
-				<label>秘密のメアド: <input type="password" name="mail" /></label>
-				<input type="submit" value="ログイン" />
+				<p><label>mailaddress: <input type="text" name="mail" /></label></p>
+				<p><label>password: <input type="password" name="password" /></label></p>
+				<p><input type="submit" value="ログイン" /></p>
 			</form>
 
 			<p id="logout_link"><span id="login_user"></span> <a href="/logout">ログアウト</a></p>
@@ -46,6 +47,7 @@
 
 	</header>
 
+	<p id="message"></p>
 
 	
 	<div id="screen">
@@ -69,11 +71,11 @@
 					<legend>本の感想を登録</legend>
 					<div class="left">
 						<p><input type="text" id="title" name="title" /></p>
+						<p><input type="text" id="mail" name="mail" /></p>
 						<p><input type="text" id="tag" name="tag" /></p>
 						<p><textarea name="text"></textarea></p>
 					</div>
 					<input type="submit" value="ゲストとして投稿" />
-					<a class="nav" href="/#!/new_user">名前を登録して投稿</a>
 				</fieldset>
 			</form>
 		</session>
@@ -82,12 +84,9 @@
 			<h1>ユーザー登録</h1>
 
 			<form method="POST" action="/new_user">
-				<p><label>希望する名前<span class="hissu">(必須)</span>:<br /><input type="text" name="name" /></label></p>
-				<p><label>秘密の質問<span class="nini">(任意)</span>:<br />
-				<select name="question" class="load_secret_questions"></select>
-				</label></p>
-				<p><label>秘密の回答<span class="nini">(任意)</span>:<br /><input type="text" name="answer" /></label></p>
-				<p><input type="submit" value="登録" /></p>
+				<p><label>mail: <input type="text" name="mail" /></label></p>
+				<p><label>password: <input type="password" name="password" /></label></p>
+				<p><input type="submit" value="register" /></p>
 			</form>
 		</session>
 

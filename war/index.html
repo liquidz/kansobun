@@ -80,27 +80,38 @@
 			</form>
 		</session>
 
-		<session id="new_user">
-			<h1>ユーザー登録</h1>
+		<session id="create_user">
+			<h1>register user</h1>
 
-			<form method="POST" action="/new_user">
+			<form method="POST" action="/create_user">
 				<p><label>mail: <input type="text" name="mail" /></label></p>
 				<p><label>password: <input type="password" name="password" /></label></p>
+				<p><label>re password: <input type="password" name="re_password" /></label></p>
 				<p><input type="submit" value="register" /></p>
 			</form>
 		</session>
+			<hr />
 
-		<session id="reset">
-			<h1>秘密のメアドを再発行</h1>
-			<form method="POST" action="/reset_user">
-				<p><label>名前:<br /><input type="text" name="name" /></label></p>
-				<p><label>秘密の質問:<br />
-				<select name="question" class="load_secret_questions"></select>
-				</label></p>
-				<p><label>秘密の回答:<br /><input type="text" name="answer" /></label></p>
-				<p><input type="submit" value="再発行" /></p>
+		<session id="">
+			<h1>change user data</h1>
+			<form method="POST" action="/change_user_data">
+				<p id="change_name"><label>name:<br /><input id="current_name" type="text" name="name" /></label></p>
+				<p><label>current password:<input type="password" name="current_password" /></label></p>
+				<p><label>new password:<input type="password" name="new_password" /></label></p>
+				<p><label>re new password:<input type="password" name="re_new_password" /></label></p>
+
+				<p><input type="submit" value="change" /></p>
+			</form>
+
+			<hr />
+
+			<form method="POST" action="/add_mail">
+				<p><label>mail:<br /><input type="text" name="mail" /></label></p>
+
+				<p><input type="submit" value="add" /></p>
 			</form>
 		</session>
+			<hr />
 
 		<session id="">
 			<h1>impression</h1>

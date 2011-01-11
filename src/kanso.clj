@@ -16,8 +16,19 @@
      )
   )
 
-(defmacro jsonGET [path bind & body] `(GET ~path ~bind (to-json ~@body)))
-(defmacro jsonPOST [path bind & body] `(POST ~path ~bind (to-json ~@body)))
+(defmacro json-service [method path bind & body]
+  `(~method ~path ~bind
+     (let [res# (do ~@body)]
+       (if (and (map? res#) (contains? res# :status) (contains? res# :headers) (contains? res# :body))
+         (assoc res# :body (to-json (:body res#)))
+         (to-json res#)
+         )
+       )
+     )
+  )
+(defmacro jsonGET [path bind & body] `(json-service GET ~path ~bind ~@body))
+;(defmacro jsonPOST [path bind & body] `(POST ~path ~bind (to-json (do ~@body))))
+(defmacro jsonPOST [path bind & body] `(json-service POST ~path ~bind ~@body))
 
 
 ;(defn- search-entity-with-text [kind key {text "text" :or {text nil}}]
@@ -36,7 +47,7 @@
   (jsonGET "/impressions" {params :params} (get-impression-list (convert-map params)))
 ;  (jsonGET "/book_impressions" {params :params} (get-impressions-from-book-key (convert-map params)))
   (jsonGET "/tag" {params :params} (get-books-with-tag (convert-map params)))
-  (jsonGET "/user" {params :params} (get-user (convert-map params)))
+  ;(jsonGET "/user" {params :params} (get-user (convert-map params)))
   (jsonGET "/users" {params :params} (get-user-list (convert-map params)))
 ;  (POST "/search" {params :params} (search params))
   (POST "/save" {params :params, session :session} (save-impression-from-web (convert-map params) session))
@@ -49,11 +60,14 @@
 (defroutes auth-routes ; {{{
   ;(GET "/login" {params :params, session :session} (login (convert-map params) session))
   (GET "/login" {params :params, session :session}
-    (println* "login info =" (login (convert-map params)))
+    (login (convert-map params))
     )
   (GET "/logout" _ (assoc (redirect "/") :session {}))
   (jsonGET "/exist_user" {params :params} (exist-user? (convert-map params)))
-  (jsonPOST "/new_user" {params :params} (create-user (convert-map params)))
+  (POST "/create_user" {params :params} (create-user (convert-map params)))
+  (POST "/change_user_data" {params :params, session :session}
+    (change-user-data (convert-map params) session)
+    )
   (jsonPOST "/reset_user" {params :params} (reset-user (convert-map params)))
   ); }}}
 
@@ -62,7 +76,7 @@
     {:flag (:loggedin? session) :name (:login-user session)}
     )
   ;(jsonGET "/parts/secret_questions" _ *secret-questions*)
-  (jsonGET "/parts/message" {session :session} (with-session (:message session) {}))
+  (jsonGET "/parts/message" {session :session} (with-message (:message session) ""))
   (GET "/parts/message/set" {{msg "msg"} :params} (with-message))
   (GET "/check" {session :session} (println "session:" session) session)
   (POST "/_ah/mail/post*" {params :params, :as req} (save-impression-from-mail (convert-map params)) "fin")

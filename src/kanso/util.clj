@@ -1,5 +1,8 @@
 (ns kanso.util
-  (:use [clojure.contrib.json :only [json-str]])
+  (:use
+     [clojure.contrib.json :only [json-str]]
+     [ring.util.response :only [redirect]]
+     )
   (:require [clojure.contrib.string :as string])
   (:import
      [java.util TimeZone Calendar]
@@ -43,7 +46,7 @@
   )
 
 (defn default-response [obj]
-  (if (map? obj) obj {:status 200 :Content-Type "text/html" :body obj})
+  (if (map? obj) obj {:status 200 :headers {"Content-Type" "text/html"} :body obj})
   )
 
 (defn with-session
@@ -56,6 +59,9 @@
   ([req res msg] (with-session req res {:message msg}))
   ([res msg] (with-message nil res msg))
   )
+
+(defn redirect-with-message [loc msg] (with-message (redirect loc) msg))
+(def return* (partial redirect-with-message "/"))
 
 (defn convert-map [m]
   (apply

@@ -4,8 +4,17 @@
      [clojure.contrib.json :only [json-str]]
      [kanso constant util]
      mygaeds
+     clj-password-check.core
      )
   (:require [clojure.contrib.string :as string])
+  )
+
+(def password-checker
+  (combine-checkers
+    (length-range 5)
+    not-same-characters?
+    not-sequential-password?
+    )
   )
 
 (defn exist-user? [{name :name, :or {name nil}}]
@@ -125,6 +134,12 @@
       (not= password re_password)
       (return "password and re_password is not equal")
 
+      (not (password-checker password))
+      (return (case @last-checker
+                'length-range "password length is required more and equal than 5 character"
+                "inputted password is not safe. more complex password is required."
+                ))
+
       (or (not (nil? (get-user-from :mail mail)))
           (and (not= name *default-name*) (not (nil? (get-user-from :name name)))))
       (return "name or mail is duplicated")
@@ -150,7 +165,7 @@
   ; update user entity
   (update-entity (:entity user) :name new-name :fixed true :date (now))
   ; update impression entity
-  (doseq [e (find-entity *impression-entity* :filter ['= :mailmd5 mailhash])]
+  (doseq [e (find-entity *impression-entity* :filter ['= :username (:name user)])]
     (update-entity (:entity e) :username name)
     )
   )

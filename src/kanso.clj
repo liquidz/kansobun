@@ -8,13 +8,40 @@
      mygaeds
 ;     [kanso constant user impression util]
      [ring.util.response :only [redirect]]
+     [clojure.contrib.singleton :only [global-singleton]]
      )
   (:use [kanso constant user impression util] :reload-all)
   (:require
      [clojure.contrib.logging :as log]
      [ring.middleware.session :as session]
+
+     ; twitter
+     twitter
+     [oauth.client :as oauth]
      )
   )
+
+
+
+;(def consumer
+;  (global-singleton #(oauth/make-consumer
+;                       "JpxJH4PVhm7jzjYwlERPPw"
+;                       "UZtq2XdPHFdBXMfyK1ebC7nT23Zumb2T99KDnR9Rig"
+;                       "https://api.twitter.com/oauth/request_token"
+;                       "https://api.twitter.com/oauth/access_token"
+;                       "https://api.twitter.com/oauth/authorize"
+;                       :hmac-sha1
+;                       )))
+(def consumer
+  (oauth/make-consumer
+    "JpxJH4PVhm7jzjYwlERPPw"
+    "UZtq2XdPHFdBXMfyK1ebC7nT23Zumb2T99KDnR9Rig"
+    "https://api.twitter.com/oauth/request_token"
+    "https://api.twitter.com/oauth/access_token"
+    "https://api.twitter.com/oauth/authorize"
+    :hmac-sha1
+    ))
+
 
 (defmacro json-service [method path bind & body]
   `(~method ~path ~bind
@@ -68,7 +95,13 @@
   (POST "/change_user_data" {params :params, session :session}
     (change-user-data (convert-map params) session)
     )
-  (jsonPOST "/reset_user" {params :params} (reset-user (convert-map params)))
+  ;(jsonPOST "/reset_user" {params :params} (reset-user (convert-map params)))
+
+  (GET "/twitterlogin" {params :params, session :session}
+    (let [request-token (oauth/request-token consumer)]
+      (redirect (oauth/user-approval-uri consumer request-token "/"))
+      )
+    )
   ); }}}
 
 (defroutes parts-route

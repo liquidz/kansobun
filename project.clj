@@ -9,6 +9,11 @@
                  [ring/ring-core "0.3.4"]
                  [ring/ring-servlet "0.3.4"]
                  [org.clojars.liquidz/clj-gravatar "0.0.1"]
+                 [org.clojars.liquidz/clj-password-check "0.0.1"]
+
+                 ;twitter
+                 [clojure-twitter "1.2.3"]
+                 [clj-oauth "1.2.8"]
                  ]
   :dev-dependencies [[ring/ring-jetty-adapter "0.3.4"]
                      [am.ik/clj-gae-testing "0.2.0-SNAPSHOT"]

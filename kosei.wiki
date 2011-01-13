@@ -1,0 +1,44 @@
+== entity ==
+* user
+	idstr <-- twitter, facebook
+	avatar url <-- from twitter? from gravatar?
+	name
+	secret mail address
+	(o)access token
+	(o)access token secret
+	date
+
+ * book
+ 	title
+	* impression
+		title
+		text
+		username
+		avatar
+		date
+	* tag
+		name
+		fixed
+
+== api ==
+* user name -> user
+* book key -> tags
+* () -> books
+* impression key -> (delete)
+* [(), user name, book key, date] -> impressions
+* () -> login information & user
+* text -> book, impressions (search)
+* new tags -> updated tags
+* tag key -> books
+* tag key -> fixed tag (future)
+* () -> last message
+
+* book key -> book
+* impression key -> impression
+	* entity key -> entity
+
+== other route ==
+* login
+* logout
+* post
+* mail post

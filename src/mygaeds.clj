@@ -62,7 +62,6 @@
       :id (get-id key)
       :key key
       :keyname (.getName key)
-      :keystr (key->str key)
       :parent (.getParent e)
       :entity e
       )

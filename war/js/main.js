@@ -153,15 +153,11 @@ Kanso.makeImpressionLinks = function(impression){
 Kanso.getRecentImpressionList = function(){
 	var ul = $("#recent_impressions ul");
 	Kanso.setLoadingGif(ul);
-	$.getJSON("/impressions", {}, function(res){
+	$.getJSON("/impression/list", {}, function(res){
 		ul.html("");
 		$.each(res, function(i, v){
-			//var anchor = $("<a href='/#!/impression/"+ v.keystr + "'>"+ v.title +" ("+ v.username +")</a>");
-			//anchor.bind("click", function(){
-			//	Kanso.showImpression(v.keystr);
-			//});
-			//ul.append($("<li></li>").append(anchor));
-			ul.append(Kanso.makeImpressionLinks(v));
+			//ul.append(Kanso.makeImpressionLinks(v));
+			console.log(v);
 		});
 	});
 };
@@ -188,7 +184,7 @@ Kanso.initLoginForm = function(){
 
 Kanso.loadLogin = function(){ // {{{
 	$.getJSON("/parts/login", {}, function(res){
-		if(res.flag){
+		if(res.isLoggedIn){
 			$("#login_user").html(res.name);
 			$("#login_form").hide();
 			$("#login_link").hide();

@@ -2,6 +2,7 @@
   (:use
      [clojure.contrib.json :only [json-str]]
      [ring.util.response :only [redirect]]
+     [mygaeds :only [key? key->str]]
      )
   (:require [clojure.contrib.string :as string])
   (:import
@@ -71,18 +72,29 @@
       (map (comp string/trim delete-html-tag) (vals m))))
   )
 
+(defn map-val-map [f m]
+  (apply hash-map (mapcat (fn [[k v]] [k (f v)]) m))
+  )
+
 (defn remove-extra-key [m]
-  (dissoc m :entity :parent :key :key-name :fixed :mailhash :question :answer)
+  ;(dissoc m :entity :parent :key :key-name :fixed :mailhash :question :answer)
+  (dissoc m :entity :key-name :fixed)
+  )
+
+(defn convert-entity-key [m]
+  (map-val-map #(if (key? %) (key->str %) %) m)
   )
 
 (defn entity-list->json [els]
-  (json-str (map #(if (map? %) (remove-extra-key %) %) els))
+  (json-str (map #(if (map? %)
+                    (-> % remove-extra-key convert-entity-key) ;(remove-extra-key %)
+                    %) els))
   )
 
 (defn- json-conv [obj]
   (cond
     (or (seq? obj) (list? obj)) (map json-conv obj)
-    (map? obj) (remove-extra-key obj)
+    (map? obj) (-> obj remove-extra-key convert-entity-key) ;(remove-extra-key obj)
     :else obj
     )
   )

@@ -26,6 +26,8 @@
     )
   )
 
+(defn get-book [{key :key}] (get-entity (str->key key)))
+
 (defn get-impression-list [{limit-str :limit, page-str :page, sort :sort
                             direction-str :direction, parent-key-str :parent, user :user
                             :or {limit-str "5", sort "date", page-str "1"
@@ -116,24 +118,24 @@
     )
   )
 
-(defn save-impression-from-mail [{:keys [subject from to body]}]
-  (if (or (string/blank? subject) (string/blank? body))
-    (return-error-mail from "subject or body is blank")
-    (let [[title & tags] (split-title-and-tag subject)]
-      (if (string/blank? title)
-        (return-error-mail from "title is blank")
-        (let [user (get-user-from-mail from)
-              guest? (= *guest-mail-address* to)
-              username (if guest? *guest-account* (:name (get-user :mail to)))]
-          (if (nil? username)
-            (return-error-mail "invalid mail address")
-            (do
-              (put-impression-entity username from title tags body)
-              (return-success-mail from "post successful")
-              )
-            )
-          )
-        )
-      )
-    )
-  )
+;(defn save-impression-from-mail [{:keys [subject from to body]}]
+;  (if (or (string/blank? subject) (string/blank? body))
+;    (return-error-mail from "subject or body is blank")
+;    (let [[title & tags] (split-title-and-tag subject)]
+;      (if (string/blank? title)
+;        (return-error-mail from "title is blank")
+;        (let [user (get-user-from-mail from)
+;              guest? (= *guest-mail-address* to)
+;              username (if guest? *guest-account* (:name (get-user :mail to)))]
+;          (if (nil? username)
+;            (return-error-mail "invalid mail address")
+;            (do
+;              (put-impression-entity username from title tags body)
+;              (return-success-mail from "post successful")
+;              )
+;            )
+;          )
+;        )
+;      )
+;    )
+;  )

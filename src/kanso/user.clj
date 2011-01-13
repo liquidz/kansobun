@@ -4,17 +4,8 @@
      [clojure.contrib.json :only [json-str]]
      [kanso constant util]
      mygaeds
-     clj-password-check.core
      )
   (:require [clojure.contrib.string :as string])
-  )
-
-(def password-checker
-  (combine-checkers
-    (length-range 5)
-    not-same-characters?
-    not-sequential-password?
-    )
   )
 
 (defn exist-user? [{name :name, :or {name nil}}]
@@ -25,18 +16,7 @@
     )
   )
 
-(defn get-user [& {:keys [name password mail]}]
-  (let [get-user-body (fn [k v] (first (find-entity *user-entity* :filter ['= k v] :limit 1)))]
-    (if name
-      (get-user-body :name name)
-      (if mail
-        (get-user-body :mail (str->md5 mail))
-        )
-      )
-    )
-  )
-
-(defn get-user-from [key val]
+(defn- find-user-from [key val]
   (case key
     :name (first (find-entity *user-entity* :filter ['= :name val] :limit 1))
     :mail (let [m (first (find-entity *mail-entity* :filter ['= :mail (str->md5 val)] :limit 1))]
@@ -45,6 +25,9 @@
     nil
     )
   )
+
+(defn get-user-from-name [{name :name}] (find-user-from :name name))
+
 
 
 ;(defn new-secret-mailaddress [] ; {{{
@@ -113,6 +96,18 @@
     )
   )
 
+(defn test-login [{:keys [location] :or {location "/"}}]
+  (with-session
+    (redirect location)
+    {
+     :loggedin? true
+     :login-user "test"
+     :login-user-key ""
+     :message "this is test login"
+     }
+    )
+  )
+
 ;(defn reset-user [{:keys [name question answer]}]
 ;  (reset-secret-mailaddress name question answer)
 ;  )
@@ -134,14 +129,8 @@
       (not= password re_password)
       (return "password and re_password is not equal")
 
-      (not (password-checker password))
-      (return (case @last-checker
-                'length-range "password length is required more and equal than 5 character"
-                "inputted password is not safe. more complex password is required."
-                ))
-
-      (or (not (nil? (get-user-from :mail mail)))
-          (and (not= name *default-name*) (not (nil? (get-user-from :name name)))))
+      (or (not (nil? (find-user-from :mail mail)))
+          (and (not= name *default-name*) (not (nil? (find-user-from :name name)))))
       (return "name or mail is duplicated")
 
       :else

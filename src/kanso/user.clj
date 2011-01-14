@@ -8,38 +8,50 @@
   (:require [clojure.contrib.string :as string])
   )
 
-(defn exist-user? [{name :name, :or {name nil}}]
+
+(defn find-user-from [key val]
+  (first (find-entity *user-entity* :filter ['= key val] :limit 1))
+  ;(case key
+  ;  :name (first (find-entity *user-entity* :filter ['= :name val] :limit 1))
+  ;  :mail (let [m (first (find-entity *mail-entity* :filter ['= :mail val] :limit 1))]
+  ;          (if-not (nil? m) (get-entity (:parent m)))
+  ;          )
+  ;  nil
+  ;  )
+  )
+
+(defn- new-secret-mailaddress []
+  (let [mail-address (str (rand-str 16) *mail-domain*)]
+    (if (zero? (count (find-entity *user-entity* :filter ['= :secret-mail mail-address] :limit 1)))
+      mail-address
+      (new-secret-mailaddress)
+      )
+    )
+  )
+
+(defn- put-user-entity [name avatar secret-mail access-token access-token-secret]
+  (put-entity *user-entity* :name name :avatar avatar :secret-mail secret-mail
+              :access-token access-token :access-token-secret access-token-secret
+              :date (now)
+              )
+  )
+(defn- create-user [name avatar access-token access-token-secret]
+  (let [secret-mail (new-secret-mailaddress)]
+    (put-user-entity name avatar secret-mail access-token access-token-secret)
+    )
+  )
+
+;(defn exist-user? [{name :name, :or {name nil}}]
+(defn- exist-user? [name]
   (or
     (string/blank? name)
     (= name *guest-account*)
     (= 1 (count (find-entity *user-entity* :filter ['= :name name] :limit 1)))
     )
   )
-
-(defn- find-user-from [key val]
-  (case key
-    :name (first (find-entity *user-entity* :filter ['= :name val] :limit 1))
-    :mail (let [m (first (find-entity *mail-entity* :filter ['= :mail (str->md5 val)] :limit 1))]
-            (if-not (nil? m) (get-entity (:parent m)))
-            )
-    nil
-    )
-  )
-
 (defn get-user-from-name [{name :name}] (find-user-from :name name))
 
-
-
-;(defn new-secret-mailaddress [] ; {{{
-;  (let [mail-address (str (rand-str 16) *mail-domain*)
-;        mail-hash (str->sha1 mail-address)]
-;    (if (zero? (count (find-entity *user-entity* :filter ['= :mailhash mail-hash] :limit 1)))
-;      [mail-address mail-hash]
-;      (new-secret-mailaddress)
-;      )
-;    )
-;  )
-;
+; {{{
 ;(defn register-secret-mailaddress [name question answer]
 ;  (if-not (exist-user? {:name name})
 ;    (let [[mail-address mail-hash] (new-secret-mailaddress)]
@@ -97,14 +109,23 @@
   )
 
 (defn test-login [{:keys [location] :or {location "/"}}]
-  (with-session
-    (redirect location)
-    {
-     :loggedin? true
-     :login-user "test"
-     :login-user-key ""
-     :message "this is test login"
-     }
+  (let [test-user-name "test"
+        user (find-user-from :name test-user-name)
+        ]
+    (if user
+      (update-entity (:entity user) :date (now))
+      (create-user test-user-name *guest-avatar* "" "")
+      )
+
+    (with-session
+      (redirect location)
+      {
+       :loggedin? true
+       :login-user test-user-name
+       :login-user-avatar *guest-avatar*
+       :message "this is test login"
+       }
+      )
     )
   )
 
@@ -112,43 +133,41 @@
 ;  (reset-secret-mailaddress name question answer)
 ;  )
 
-(defn put-mail-entity [parent mail]
-  (put-entity *mail-entity* :parent parent :mail (str->md5 mail))
-  )
+;(defn- put-mail-entity [parent mail]
+;  (put-entity *mail-entity* :parent parent :mail (str->md5 mail))
+;  )
 
-(defn- put-user-entity [name password fixed?]
-  (put-entity *user-entity* :name name :password (str->sha1 password) :fixed fixed?)
-  )
 
-(defn create-user [{:keys [name mail password re_password], :or {name *default-name*}}]
-  (let [return (partial redirect-with-message "/")]
-    (cond
-      (or (string/blank? name) (string/blank? password) (string/blank? mail))
-      (return "name or passowrd is blank")
+;(defn create-user [{:keys [name mail password re_password], :or {name *default-name*}} session]
+;  (let [return #(with-message session (redirect "/") %)]
+;    (cond
+;      (or (string/blank? name) (string/blank? password) (string/blank? mail))
+;      (return "name or passowrd is blank")
+;
+;      (not= password re_password)
+;      (return "password and re_password is not equal")
+;
+;      (or (not (nil? (find-user-from :mail mail)))
+;          (and (not= name *default-name*) (not (nil? (find-user-from :name name)))))
+;      (return "name or mail is duplicated")
+;
+;      :else
+;      (do
+;        (put-mail-entity (put-user-entity name password (not= name *default-name*)) mail)
+;        (login {:mail mail, :password password, :location "/#!/change_user_data"})
+;        )
+;      )
+;    )
+;  )
 
-      (not= password re_password)
-      (return "password and re_password is not equal")
 
-      (or (not (nil? (find-user-from :mail mail)))
-          (and (not= name *default-name*) (not (nil? (find-user-from :name name)))))
-      (return "name or mail is duplicated")
-
-      :else
-      (do
-        (put-mail-entity (put-user-entity name password (not= name *default-name*)) mail)
-        (login {:mail mail, :password password, :location "/#!/change_user_data"})
-        )
-      )
-    )
-  )
-
-(defn add-mail [{:keys [name password mail]}]
-  (when-not (or (string/blank? name) (string/blank? password) (string/blank? mail))
-    (let [user (find-entity *user-entity* :filter [['= :name name] ['= :password (str->sha1 password)]])]
-      (if-not (nil? user) (put-mail-entity user mail))
-      )
-    )
-  )
+;(defn add-mail [{:keys [name password mail]}]
+;  (when-not (or (string/blank? name) (string/blank? password) (string/blank? mail))
+;    (let [user (find-entity *user-entity* :filter [['= :name name] ['= :password (str->sha1 password)]])]
+;      (if-not (nil? user) (put-mail-entity user mail))
+;      )
+;    )
+;  )
 
 (defn- update-user-name [user new-name]
   ; update user entity
@@ -163,7 +182,7 @@
                          new-password :new_password, re-new-password :re_new_password, :as params}
                         {:keys [loggedin? login-user-key] :as session}]
   (if-not loggedin?
-    (redirect-with-message "/" "not logged in")
+    (with-message session (redirect "/") "not logged in")
     (let [user (get-entity (str->key login-user-key))]
       ; change user name
       (when (and (not (string/blank? name))
@@ -175,9 +194,10 @@
       ; change password
       (when (and (not (string/blank? current-password)) (not (string/blank? new-password)))
         (if-not (= (:password user) (str->sha1 current-password))
-          (redirect-with-message "/#!/change_user_data" "current password is wrong")
+          (with-message session (redirect "/#!/change_user_data") "current password is wrong")
           (if-not (= new-password re-new-password)
-            (redirect-with-message "/#!/change_user_data" "new password and re new password is not equal")
+            (with-message (redirect "/#!/change_user_data")
+                          "new password and re new password is not equal")
             (do
               (update-entity (:entity user) :password (str->sha1 ))
               )

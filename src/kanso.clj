@@ -16,7 +16,7 @@
      )
   )
 
-(defmacro json-service [method path bind & body]
+(defmacro json-service [method path bind & body] ; {{{
   `(~method ~path ~bind
      (let [res# (do ~@body)]
        (if (and (map? res#) (contains? res# :status) (contains? res# :headers) (contains? res# :body))
@@ -25,7 +25,11 @@
 (defmacro jsonGET [path bind & body] `(json-service GET ~path ~bind ~@body))
 ;(defmacro jsonPOST [path bind & body] `(json-service POST ~path ~bind ~@body))
 (defmacro apiGET [path fn] `(jsonGET ~path {params# :params} (~fn (convert-map params#))))
+(defmacro apiGET/session [path fn] `(jsonGET ~path {params# :params, session# :session}
+                                             (~fn (convert-map params#) session#)))
+; }}}
 
+; OLD {{{
 ;(defroutes api-routes
 ;  (jsonGET "/impression" {params :params} (get-impression (convert-map params)))
 ;  (jsonGET "/impressions" {params :params} (get-impression-list (convert-map params)))
@@ -40,22 +44,15 @@
 ;  ;(jsonGET "/gravatar/image" {{mail "mail"} :params} (gravatar-image mail))
 ;  ;(jsonGET "/gravatar/profile" {{mail "mail"} :params} (gravatar-profile mail))
 ;  )
-
-;(defn get-entity-from-key-str [{key :key}]
-;  (if-not (string/blank? key) (get-entity (str->key key))))
+;  }}}
 
 (defroutes api-routes
-  ;(apiGET "/get" get-entity-from-key-str)
   (apiGET "/user" get-user-from-name)
-  ;(apiGET "/book" get-book)
-  ;(apiGET "/book/tag" get-tag-list)
-  ;(apiGET "/book/list" get-book-list)
+  (apiGET "/book" get-book)
+  (apiGET "/book/list" get-book-list)
   (apiGET "/impression" get-impression)
-  ;(apiGET "/impression/delete" delete-impression)
   (apiGET "/impression/list" get-impression-list)
-  ;(apiGET "/tag" get-book-list-from-tag)
-  ;(apiGET "/tag/update" update-tag)
-  ;(apiGET "/tag/fix" fix-tag)
+  (apiGET/session "/tag/update" update-tag)
   ;(apiGET "/search" search-book-or-impression)
   )
 
@@ -63,15 +60,19 @@
   (jsonGET "/parts/login" {session :session}
            {:isLoggedIn (:loggedin? session)
             :name (:login-user session)})
-  (jsonGET "/parts/message" {session :session} (with-message (:message session) ""))
+  (jsonGET "/parts/message" {session :session} (with-message session (:message session) ""))
   )
 
 (defroutes app-routes
   ;(GET "/login" {session :session} (login session))
   (GET "/login" {session :session} (test-login session))
   (GET "/logout" _ (with-session (redirect "/") {}))
-  ;(POST "/post" {params :params, session :session} (post-impression (convert-map params) session))
-  ;(POST "/_ah/mail/post*" {params :params} (save-impression-from-mail (convert-map params)) "")
+  (POST "/post" {params :params, session :session}
+    (post-impression-from-web (convert-map params) session))
+  (GET "/delete" {params :params, session :session}
+    (delete-impression (convert-map params) session)
+    )
+  ;(POST "/_ah/mail/*" {params :params} (save-impression-from-mail (convert-map params)) "")
   (not-found "page not found")
   )
 
@@ -79,10 +80,12 @@
   ;(apiGET "/admin/create/user" ***)
   ;(apiGET "/admin/create/impression" ***)
   ;(apiGET "/admin/create/tag" ***)
-  (GET "/admin/message/:text" {{text "text"} :params} (with-message (redirect "/admin") text))
+  (GET "/admin/message/:text" {{text "text"} :params, session :session}
+    (with-message session (redirect "/admin") text))
   )
 
-;(defroutes auth-routes ; {{{
+; OLD {{{
+;(defroutes auth-routes
 ;  ;(GET "/login" {params :params, session :session} (login (convert-map params) session))
 ;  (GET "/login" {params :params, session :session}
 ;    (login (convert-map params))
@@ -95,7 +98,7 @@
 ;    )
 ;  ;(jsonPOST "/reset_user" {params :params} (reset-user (convert-map params)))
 ;
-;  ); }}}
+;  )
 
 ;(defroutes parts-route
 ;  (jsonGET "/parts/login" {session :session}
@@ -108,6 +111,7 @@
 ;  (POST "/_ah/mail/post*" {params :params, :as req} (save-impression-from-mail (convert-map params)) "fin")
 ;  (not-found "page not found")
 ;  )
+;  ;}}}
 
 ;(defroutes app api-routes auth-routes parts-route)
 (defroutes app api-routes parts-routes app-routes)

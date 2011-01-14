@@ -54,6 +54,8 @@
 (defn key? [obj] (instance? Key obj))
 (defn get-key [#^Entity e] (.getKey e))
 (defn get-id [#^Key k] (.getId k))
+(defn get-kind [#^Key k] (.getKind k))
+(defn kind= [#^Key key, #^String kind] (= (get-kind key) kind))
 
 (defn entity->map [#^Entity e]
   (let [key (get-key e)]

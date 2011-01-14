@@ -9,6 +9,7 @@
 (def *admin-mail-address* (str "admin" *mail-domain*))
 (def *admin-mail-name* "kansobun admin")
 (def *guest-account* "guest")
+(def *guest-avatar* "/img/noavatar.png")
 (def *guest-mail-address* (str *guest-account* *mail-domain*))
 (def *default-name* "noname")
 

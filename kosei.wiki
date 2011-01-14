@@ -18,27 +18,21 @@
 		date
 	* tag
 		name
-		fixed
 
 == api ==
-* user name -> user
-* book key -> tags
-* () -> books
-* impression key -> (delete)
-* [(), user name, book key, date] -> impressions
-* () -> login information & user
+(O)* user name -> user
+(O)* book key -> book & tags
+(O)* [(), tag] -> books
+(O)* impression key -> impression & tags
+(O)* impression key -> (delete)
+(O)* [(), user name, book key, date] -> impressions
+(O)* () -> login information & user
 * text -> book, impressions (search)
-* new tags -> updated tags
-* tag key -> books
-* tag key -> fixed tag (future)
-* () -> last message
-
-* book key -> book
-* impression key -> impression
-	* entity key -> entity
+(O)* new tags -> updated tags
+(O)* () -> last message
 
 == other route ==
 * login
-* logout
-* post
+(O)* logout
+(O)* post
 * mail post

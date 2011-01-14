@@ -72,9 +72,9 @@ Kanso.checkInitialLocation = function(){
 Kanso.makeTagLinks = function(tags){
 	var span = $("<span>");
 
-	$.each(tags, function(i, v){
-		Kanso.makeLink("/#!/tag/" + v.tag, v.tag)
-			.bind("click", function(){ Kanso.showTagBooks(v.tag); })
+	$.each(tags, function(i, tag){
+		Kanso.makeLink("/#!/tag/" + tag.name, tag.name)
+			.bind("click", function(){ Kanso.showTagBooks(tag.name); })
 			.appendTo(span);
 	});
 

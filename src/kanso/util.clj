@@ -2,7 +2,7 @@
   (:use
      [clojure.contrib.json :only [json-str]]
      [ring.util.response :only [redirect]]
-     [mygaeds :only [key? key->str]]
+     [mygaeds :only [key? key->str str->key get-entity]]
      )
   (:require [clojure.contrib.string :as string])
   (:import
@@ -51,18 +51,18 @@
   )
 
 (defn with-session
-  ([{session :session, :as req} res m]
+  ([session res m];[{session :session, :as req} res m]
    (assoc (default-response res) :session (conj (aif session it {}) m)))
   ([res m] (with-session nil res m))
   )
 
 (defn with-message
-  ([req res msg] (with-session req res {:message msg}))
+  ([session res msg] (with-session session res {:message msg}))
   ([res msg] (with-message nil res msg))
   )
 
-(defn redirect-with-message [loc msg] (with-message (redirect loc) msg))
-(def return* (partial redirect-with-message "/"))
+;(defn redirect-with-message [loc msg] (with-message (redirect loc) msg))
+;(def return* (partial redirect-with-message "/"))
 
 (defn convert-map [m]
   (apply
@@ -78,23 +78,26 @@
 
 (defn remove-extra-key [m]
   ;(dissoc m :entity :parent :key :key-name :fixed :mailhash :question :answer)
-  (dissoc m :entity :key-name :fixed)
+  (dissoc m :entity :keyname :secret-mail
+          :access-token :access-token-secret :date
+          )
   )
 
-(defn convert-entity-key [m]
-  (map-val-map #(if (key? %) (key->str %) %) m)
-  )
+;(defn convert-entity-key [m]
+;  (map-val-map #(if (key? %) (key->str %) %) m)
+;  )
 
-(defn entity-list->json [els]
-  (json-str (map #(if (map? %)
-                    (-> % remove-extra-key convert-entity-key) ;(remove-extra-key %)
-                    %) els))
-  )
+;(defn entity-list->json [els]
+;  (json-str (map #(if (map? %)
+;                    (-> % remove-extra-key convert-entity-key) ;(remove-extra-key %)
+;                    %) els))
+;  )
 
 (defn- json-conv [obj]
   (cond
     (or (seq? obj) (list? obj)) (map json-conv obj)
-    (map? obj) (-> obj remove-extra-key convert-entity-key) ;(remove-extra-key obj)
+    (map? obj) (map-val-map json-conv (remove-extra-key obj))
+    (key? obj) (key->str obj)
     :else obj
     )
   )
@@ -114,3 +117,6 @@
   (apply println args)
   (last args)
   )
+
+;(defn get-entity-from-key-str [{key :key}]
+;  (if-not (string/blank? key) (get-entity (str->key key))))
